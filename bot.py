@@ -26,6 +26,63 @@ def fetch_xp_operations(safe: str) -> list:
     r = requests.get(url, timeout=30)
     r.raise_for_status()
     return r.json()
+def _as_list(value):
+    """xp-operations/positionsの返り値を 'list' に正規化する"""
+    if isinstance(value, list):
+        return value
+    if isinstance(value, dict):
+        # よくある形: {"data":[...]} or {"positions":[...]}
+        for k in ("data", "positions", "items", "result"):
+            v = value.get(k)
+            if isinstance(v, list):
+                return v
+    return []
+
+
+def calc_fee_usd_24h_from_xp_ops(xp_ops_list, now_dt):
+    """
+    xp-operations から直近24hの確定手数料(USD相当)を合計する。
+    DevToolsのスクショにある 'points' をUSD相当として扱う（推測）。
+    """
+    since = now_dt - timedelta(hours=24)
+    total = 0.0
+    count = 0
+
+    for op in xp_ops_list:
+        if not isinstance(op, dict):
+            continue
+
+        # timestamp: 秒（スクショで 1770641xxx の形）
+        ts = op.get("timestamp")
+        if ts is None:
+            continue
+
+        try:
+            ts_dt = datetime.fromtimestamp(int(ts), JST)
+        except Exception:
+            continue
+
+        if ts_dt < since or ts_dt > now_dt:
+            continue
+
+        # 収益っぽい操作だけ拾う（まずは広めに）
+        op_type = str(op.get("op_type", "")).lower()
+        if not any(key in op_type for key in ("fee", "collect", "compound")):
+            continue
+
+        # points をUSD相当で加算（pointsが無い場合はスキップ）
+        try:
+            points = float(op.get("points", 0))
+        except Exception:
+            points = 0.0
+
+        if points == 0:
+            continue
+
+        total += points
+        count += 1
+
+    return total, count
 
 
 def main():
