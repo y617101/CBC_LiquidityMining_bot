@@ -108,7 +108,6 @@ def main():
         "Step B) Fetch OK\n"
         f"positions: {pos_count}\n"
         f"xp-operations: {xp_count}\n"
-        f"xp-operations: {xp_count}\n"
         f"24h fee (points): {fee_24h}\n"
         f"24h fee count: {fee_count}\n"
     )
