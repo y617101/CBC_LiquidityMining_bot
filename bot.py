@@ -98,6 +98,7 @@ def main():
     xp_list = _as_list(xp_ops)
     pos_count = len(pos_list) if isinstance(pos_list, list) else 0
     xp_count = len(xp_list)
+    fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
     
     send_telegram(
         "CBC Liquidity Mining – Debug\n"
@@ -107,6 +108,9 @@ def main():
         "Step B) Fetch OK\n"
         f"positions: {pos_count}\n"
         f"xp-operations: {xp_count}\n"
+        f"xp-operations: {xp_count}\n"
+        f"24h fee (points): {fee_24h}\n"
+        f"24h fee count: {fee_count}\n"
     )
 
 
