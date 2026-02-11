@@ -32,7 +32,7 @@ def _as_list(value):
         return value
     if isinstance(value, dict):
         # よくある形: {"data":[...]} or {"positions":[...]}
-        for k in ("data", "positions", "items", "result"):
+        for k in ("data", "positions", "items", "result", "operations", "xp_operations", "xpOperations", "logs"):
             v = value.get(k)
             if isinstance(v, list):
                 return v
