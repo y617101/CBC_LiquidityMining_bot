@@ -95,9 +95,10 @@ def main():
     xp_ops = fetch_xp_operations(safe)
     # ✅ Step B: 2本取得できたか確認（まずは件数だけ）
     pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
+    xp_list = _as_list(xp_ops)
     pos_count = len(pos_list) if isinstance(pos_list, list) else 0
-    xp_count = len(xp_ops) if isinstance(xp_ops, list) else 0
-
+    xp_count = len(xp_list)
+    
     send_telegram(
         "CBC Liquidity Mining – Debug\n"
         f"{now}\n"
