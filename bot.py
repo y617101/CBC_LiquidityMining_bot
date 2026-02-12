@@ -7,9 +7,16 @@ JST = timezone(timedelta(hours=9))
 def send_telegram(text):
     token = os.environ["TG_BOT_TOKEN"]
     chat_id = os.environ["TG_CHAT_ID"]
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    r = requests.post(url, json={"chat_id": chat_id, "text": text}, timeout=30)
-    r.raise_for_status()
+url = f"https://api.telegram.org/bot{token}/sendMessage"
+r = requests.post(
+    url,
+    json={"chat_id": chat_id, "text": text},
+    timeout=30
+)
+r.raise_for_status()
+
+
+r.raise_for_status()
 
 
 REVERT_API = "https://api.revert.finance"
