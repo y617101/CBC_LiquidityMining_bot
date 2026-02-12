@@ -103,6 +103,7 @@ def main():
         return
     positions = fetch_positions(safe)
     xp_ops = fetch_xp_operations(safe)
+    print("XP RAW:", xp_ops)
     # ✅ Step B: 2本取得できたか確認（まずは件数だけ）
     pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
     xp_list = _as_list(xp_ops)
