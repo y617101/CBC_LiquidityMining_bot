@@ -106,14 +106,22 @@ def main():
     print("XP RAW:", xp_ops)
     # ✅ Step B: 2本取得できたか確認（まずは件数だけ）
     pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
-    xp_list = _as_list(xp_ops)
+        xp_list = _as_list(xp_ops)
+
+
+    if xp_list:
+        op0 = xp_list[0]
+        send_telegram("XP DEBUG keys:\n" + "\n".join(sorted(op0.keys())))
+    else:
+        send_telegram("XP DEBUG: xp_list is empty")
+
     pos_count = len(pos_list) if isinstance(pos_list, list) else 0
     xp_count = len(xp_list)
     fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
     
     send_telegram(
         "CBC Liquidity Mining – Debug\n"
-        f"{now}\n"
+        f"{now}\n"　
         "━━━━━━━━━━━━━━\n"
         f"SAFE\n{safe}\n\n"
         "Step B) Fetch OK\n"
