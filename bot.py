@@ -113,14 +113,6 @@ def main():
     
     
 
-    if xp_list:
-        op0 = xp_list[0]
-        send_telegram("XP OP #0:\n" + json.dumps(op0, ensure_ascii=False, indent=2))
-        send_telegram("XP DEBUG keys:\n" + ", ".join(sorted(op0.keys())))
-    else:
-        send_telegram("XP DEBUG: xp_list is empty")
-
-
 
     pos_count = len(pos_list) if isinstance(pos_list, list) else 0
     xp_count = len(xp_list)
@@ -129,30 +121,19 @@ def main():
     datetime.now(JST)
 )
 
-    send_telegram(
-        "CBC Liquidity Mining – Debug\n"
-        f"{now}\n"
-        "-----------------------------\n"
-        f"SAFE\n{safe}\n\n"
-        "Step B) Fetch OK\n"
-        f"positions: {pos_count}\n"
-        f"xp-operations: {xp_count}\n"
-        f"Daily fee (USD): {fee_usd:.2f}\n"
-        f"Transactions: {fee_count}\n"
-        f"Period: {start_dt} → {end_dt}\n"
 
-    )
 
-    message = (
-        "CBC Liquidity Mining – Daily\n"
-        f"{now}\n"
-        "-----------------------------\n\n"
-        "SAFE\n"
-        f"{safe}\n\n"
-        "Render connection test success\n"
-    )
+    report = (
+    "CBC Liquidity Mining – Daily\n"
+    f"{end_dt.strftime('%Y-%m-%d')} 09:00 JST\n"
+    "────────────────────\n"
+    f"SAFE\n{safe}\n\n"
+    f"■ 24h確定手数料 ${fee_usd:.2f}\n"
+    f"■ Transactions {fee_count}\n"
+    f"■ Period {start_dt.strftime('%Y-%m-%d %H:%M')} → {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
+)
 
-    send_telegram(message)
+
 
 
 
