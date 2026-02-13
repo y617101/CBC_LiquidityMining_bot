@@ -119,7 +119,7 @@ xp_count = len(xp_list)
 fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
 
 
-　　　　    send_telegram(
+    send_telegram(
         "CBC Liquidity Mining - Debug\n"
         f"{now}\n"
         "------------------------------\n"
