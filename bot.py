@@ -110,7 +110,7 @@ def main():
 
     pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
     xp_list = _as_list(xp_ops)
-
+    
     
 
     if xp_list:
@@ -137,7 +137,6 @@ def main():
         "Step B) Fetch OK\n"
         f"positions: {pos_count}\n"
         f"xp-operations: {xp_count}\n"
-        f"24h fee (points): {fee_24h}\n"
         f"Daily fee (USD): {fee_usd:.2f}\n"
         f"Transactions: {fee_count}\n"
         f"Period: {start_dt} → {end_dt}\n"
