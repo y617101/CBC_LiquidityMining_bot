@@ -7,22 +7,18 @@ def send_telegram(text):
     token = os.environ.get("TG_BOT_TOKEN")
     chat_id = os.environ.get("TG_CHAT_ID")
 
-    print(f"[send_telegram] token? {bool(token)} chat_id? {bool(chat_id)}", flush=True)
-
     if not token or not chat_id:
         print("Telegram ENV missing", flush=True)
         return
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-
     r = requests.post(
         url,
         json={"chat_id": chat_id, "text": text},
         timeout=30
     )
-
-    print("Telegram status:", r.status_code, flush=True)
     r.raise_for_status()
+
 
 
 
