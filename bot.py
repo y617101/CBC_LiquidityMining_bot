@@ -98,21 +98,22 @@ def calc_fee_usd_24h_from_xp_ops(xp_ops_list, now_dt):
 def main():
     now = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
     safe = os.environ.get("SAFE_ADDRESS", "SAFE_NOT_SET")
+
     if safe == "SAFE_NOT_SET":
         send_telegram("SAFE\nSAFE_NOT_SET\n\nSAFE_ADDRESS をRenderのEnvironment Variablesに入れてね")
         return
+
     positions = fetch_positions(safe)
     xp_ops = fetch_xp_operations(safe)
-    print("XP RAW:", xp_ops)
-    # ✅ Step B: 2本取得できたか確認（まずは件数だけ）
-    pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
-xp_list = _as_list(xp_ops)
 
-if xp_list:
-    op0 = xp_list[0]
-    send_telegram("XP DEBUG keys:\n" + ", ".join(sorted(op0.keys())))
-else:
-    send_telegram("XP DEBUG: xp_list is empty")
+    pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
+    xp_list = _as_list(xp_ops)
+
+    if xp_list:
+        op0 = xp_list[0]
+        send_telegram("XP DEBUG keys:\n" + ", ".join(sorted(op0.keys())))
+    else:
+        send_telegram("XP DEBUG: xp_list is empty")
 
     pos_count = len(pos_list) if isinstance(pos_list, list) else 0
     xp_count = len(xp_list)
@@ -130,17 +131,17 @@ else:
         f"24h fee count: {fee_count}\n"
     )
 
-
     message = (
-        "CBC Liquidity Mining - Daily\n"
+        "CBC Liquidity Mining – Daily\n"
         f"{now}\n"
-        "------------------------------\n\n"
+        "-----------------------------\n\n"
         "SAFE\n"
         f"{safe}\n\n"
         "Render connection test success\n"
     )
 
     send_telegram(message)
+
 
 
 
