@@ -110,7 +110,6 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
 
 def main():
     print("=== BOT START (PRINT) ===", flush=True)
-    send_telegram("BOT START TEST")
     now = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
     safe = os.environ.get("SAFE_ADDRESS", "SAFE_NOT_SET")
 
@@ -118,8 +117,9 @@ def main():
         send_telegram("SAFE\nSAFE_NOT_SET\n\nSAFE_ADDRESS をRenderのEnvironment Variablesに入れてね")
         return
 
-    positions = []
-    xp_ops = []
+    positions = fetch_positions(safe)
+    xp_ops = fetch_xp_operations(safe)
+
 
     pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
     xp_list = _as_list(xp_ops)
@@ -138,13 +138,14 @@ def main():
 
     report = (
     "CBC Liquidity Mining – Daily\n"
-    f"{end_dt.strftime('%Y-%m-%d')} 09:00 JST\n"
+    f"Period End: {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
     "────────────────────\n"
     f"SAFE\n{safe}\n\n"
     f"■ 24h確定手数料 ${fee_usd:.2f}\n"
     f"■ Transactions {fee_count}\n"
     f"■ Period {start_dt.strftime('%Y-%m-%d %H:%M')} → {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
 )
+send_telegram(report)
 
 
 
