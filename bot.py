@@ -114,15 +114,14 @@ if xp_list:
 else:
     send_telegram("XP DEBUG: xp_list is empty")
 
-pos_count = len(pos_list) if isinstance(pos_list, list) else 0
-xp_count = len(xp_list)
-fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
-
+    pos_count = len(pos_list) if isinstance(pos_list, list) else 0
+    xp_count = len(xp_list)
+    fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
 
     send_telegram(
-        "CBC Liquidity Mining – Debug\n"
+        "CBC Liquidity Mining - Debug\n"
         f"{now}\n"
-        "--------------------------\n"
+        "------------------------------\n"
         f"SAFE\n{safe}\n\n"
         "Step B) Fetch OK\n"
         f"positions: {pos_count}\n"
@@ -130,7 +129,6 @@ fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
         f"24h fee (points): {fee_24h}\n"
         f"24h fee count: {fee_count}\n"
     )
-
 
     message = (
         "CBC Liquidity Mining - Daily\n"
@@ -144,5 +142,6 @@ fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
     send_telegram(message)
 
 
+
 if __name__ == "__main__":
-    main()
+        main()
