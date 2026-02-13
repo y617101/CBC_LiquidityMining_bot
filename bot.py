@@ -98,6 +98,7 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
 
 
 def main():
+    send_telegram("BOT START TEST")
     now = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
     safe = os.environ.get("SAFE_ADDRESS", "SAFE_NOT_SET")
 
