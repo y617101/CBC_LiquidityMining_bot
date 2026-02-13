@@ -3,8 +3,27 @@ import requests
 import json
 
 
-token = os.environ["TG_BOT_TOKEN"]
-chat_id = os.environ["TG_CHAT_ID"]
+def send_telegram(text):
+    token = os.environ.get("TG_BOT_TOKEN")
+    chat_id = os.environ.get("TG_CHAT_ID")
+
+    print(f"[send_telegram] token? {bool(token)} chat_id? {bool(chat_id)}", flush=True)
+
+    if not token or not chat_id:
+        print("Telegram ENV missing", flush=True)
+        return
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+
+    r = requests.post(
+        url,
+        json={"chat_id": chat_id, "text": text},
+        timeout=30
+    )
+
+    print("Telegram status:", r.status_code, flush=True)
+    r.raise_for_status()
+
 
 
 
@@ -98,6 +117,7 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
 
 
 def main():
+    print("=== BOT START (PRINT) ===", flush=True)
     send_telegram("BOT START TEST")
     now = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
     safe = os.environ.get("SAFE_ADDRESS", "SAFE_NOT_SET")
