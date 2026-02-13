@@ -109,11 +109,16 @@ def main():
     pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
     xp_list = _as_list(xp_ops)
 
-    if xp_list:
-        op0 = xp_list[0]
-        send_telegram("XP DEBUG keys:\n" + ", ".join(sorted(op0.keys())))
-    else:
-        send_telegram("XP DEBUG: xp_list is empty")
+    
+
+if xp_list:
+    op0 = xp_list[0]
+    send_telegram("XP OP #0:\n" + json.dumps(op0, ensure_ascii=False, indent=2))
+    send_telegram("XP DEBUG keys:\n" + ", ".join(sorted(op0.keys())))
+else:
+    send_telegram("XP DEBUG: xp_list is empty")
+
+
 
     pos_count = len(pos_list) if isinstance(pos_list, list) else 0
     xp_count = len(xp_list)
