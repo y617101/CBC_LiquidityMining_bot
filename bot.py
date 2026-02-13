@@ -146,7 +146,6 @@ def main():
     f"■ Period {start_dt.strftime('%Y-%m-%d %H:%M')} → {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
 )
 
-send_telegram(report)
 
 
 
