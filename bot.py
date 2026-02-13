@@ -119,10 +119,10 @@ xp_count = len(xp_list)
 fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
 
 
-　　　　send_telegram(
-        "CBC Liquidity Mining – Debug\n"
+　　　　    send_telegram(
+        "CBC Liquidity Mining - Debug\n"
         f"{now}\n"
-        "——————————————\n"
+        "------------------------------\n"
         f"SAFE\n{safe}\n\n"
         "Step B) Fetch OK\n"
         f"positions: {pos_count}\n"
@@ -132,15 +132,16 @@ fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
     )
 
     message = (
-        "CBC Liquidity Mining – Daily\n"
+        "CBC Liquidity Mining - Daily\n"
         f"{now}\n"
-        "——————————————\n\n"
+        "------------------------------\n\n"
         "SAFE\n"
         f"{safe}\n\n"
-        "Render接続テスト成功 🎉\n"
+        "Render connection test success\n"
     )
 
-　　　　send_telegram(message)
+    send_telegram(message)
+
 
 if __name__ == "__main__":
     main()
