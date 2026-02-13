@@ -51,12 +51,15 @@ def _as_list(value):
     return []
 
 
-def calc_fee_usd_24h_from_xp_ops(xp_ops_list, now_dt):
-    """
-    xp-operations から直近24hの確定手数料(USD相当)を合計する。
-    DevToolsのスクショにある 'points' をUSD相当として扱う（推測）。
-    """
-    since = now_dt - timedelta(hours=24)
+def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
+
+    end_dt = now_dt.replace(hour=9, minute=0, second=0, microsecond=0)
+
+    if now_dt < end_dt:
+        end_dt = end_dt - timedelta(days=1)
+
+    start_dt = end_dt - timedelta(days=1)
+
     total = 0.0
     count = 0
 
@@ -64,28 +67,25 @@ def calc_fee_usd_24h_from_xp_ops(xp_ops_list, now_dt):
         if not isinstance(op, dict):
             continue
 
-        # timestamp: 秒（スクショで 1770641xxx の形）
         ts = op.get("timestamp")
         if ts is None:
             continue
 
         try:
             ts_dt = datetime.fromtimestamp(int(ts), JST)
-        except Exception:
+        except:
             continue
 
-        if ts_dt < since or ts_dt > now_dt:
+        if ts_dt < start_dt or ts_dt >= end_dt:
             continue
 
-        # 収益っぽい操作だけ拾う（まずは広めに）
         op_type = str(op.get("op_type", "")).lower()
-        if not any(key in op_type for key in ("fee", "collect", "compound")):
+        if not any(k in op_type for k in ("fee", "collect", "compound")):
             continue
 
-        # points をUSD相当で加算（pointsが無い場合はスキップ）
         try:
-            points = float(op.get("points", 0))
-        except Exception:
+            points = float(op.get("points", 0) or 0)
+        except:
             points = 0.0
 
         if points == 0:
@@ -94,7 +94,7 @@ def calc_fee_usd_24h_from_xp_ops(xp_ops_list, now_dt):
         total += points
         count += 1
 
-    return total, count
+    return total, count, start_dt, end_dt
 
 
 def main():
@@ -124,7 +124,10 @@ def main():
 
     pos_count = len(pos_list) if isinstance(pos_list, list) else 0
     xp_count = len(xp_list)
-    fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
+    fee_usd, fee_count, start_dt, end_dt = calc_fee_usd_daily_from_xp_ops(
+    xp_list,
+    datetime.now(JST)
+)
 
     send_telegram(
         "CBC Liquidity Mining – Debug\n"
@@ -135,7 +138,10 @@ def main():
         f"positions: {pos_count}\n"
         f"xp-operations: {xp_count}\n"
         f"24h fee (points): {fee_24h}\n"
-        f"24h fee count: {fee_count}\n"
+        f"Daily fee (USD): {fee_usd:.2f}\n"
+        f"Transactions: {fee_count}\n"
+        f"Period: {start_dt} → {end_dt}\n"
+
     )
 
     message = (
