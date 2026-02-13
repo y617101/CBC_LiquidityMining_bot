@@ -119,9 +119,9 @@ else:
     fee_24h, fee_count = calc_fee_usd_24h_from_xp_ops(xp_list, datetime.now(JST))
 
     send_telegram(
-        "CBC Liquidity Mining - Debug\n"
+        "CBC Liquidity Mining – Debug\n"
         f"{now}\n"
-        "------------------------------\n"
+        "-----------------------------\n"
         f"SAFE\n{safe}\n\n"
         "Step B) Fetch OK\n"
         f"positions: {pos_count}\n"
@@ -129,6 +129,7 @@ else:
         f"24h fee (points): {fee_24h}\n"
         f"24h fee count: {fee_count}\n"
     )
+
 
     message = (
         "CBC Liquidity Mining - Daily\n"
