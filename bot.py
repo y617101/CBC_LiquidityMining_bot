@@ -105,8 +105,8 @@ def main():
         send_telegram("SAFE\nSAFE_NOT_SET\n\nSAFE_ADDRESS をRenderのEnvironment Variablesに入れてね")
         return
 
-    positions = fetch_positions(safe)
-    xp_ops = fetch_xp_operations(safe)
+    positions = []
+    xp_ops = []
 
     pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
     xp_list = _as_list(xp_ops)
