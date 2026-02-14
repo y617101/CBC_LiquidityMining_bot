@@ -186,8 +186,9 @@ def calc_uncollected_usd_from_positions(pos_list):
     total = 0.0
 
     for pos in pos_list:
+        
         try:
-            v = pos.get("fees_value")
+            v = pos.get("uncollectedFees", {}).get("usd")
             if v is None:
                 continue
             total += float(v)
