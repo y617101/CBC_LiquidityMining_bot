@@ -104,6 +104,8 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
         except:
             continue
 
+        print("DBG ts_dt:", ts_dt, flush=True)
+        print("DBG window:", start_dt, end_dt, flush=True)
 
         if ts_dt < start_dt or ts_dt >= end_dt:
             continue
