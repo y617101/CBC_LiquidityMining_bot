@@ -79,6 +79,7 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
     count = 0
 
     for op in xp_ops_list:  # ← ここは「4スペース」インデントで必ず関数内
+        print("DBG OP:", op, flush=True)
         n_all += 1
         if isinstance(op, dict):
             n_dict += 1
