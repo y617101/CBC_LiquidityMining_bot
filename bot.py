@@ -140,6 +140,9 @@ count = 0
     total += usd
     count += 1
 
+    return total, count, start_dt, end_dt
+
+
 
 
 
