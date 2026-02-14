@@ -251,9 +251,9 @@ print("pos_open:", pos_open_count, "pos_exited:", pos_exited_count, "pos_all:", 
     
 
 
-    fee_usd, fee_count, start_dt, end_dt = calc_fee_usd_daily_from_xp_ops(
-    xp_list,
-    datetime.now(JST)
+fee_usd, fee_count, start_dt, end_dt = calc_fee_usd_daily_from_xp_ops(
+xp_list,
+datetime.now(JST)
 )
 
 
