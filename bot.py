@@ -339,6 +339,7 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
                 continue
                 
                 ts_dt = datetime.fromtimestamp(ts, JST)
+                print("DBG claimed-fees JST:", ts_dt, "start:", start_dt, "end:", end_dt, flush=True)
                 if ts_dt < start_dt or ts_dt >= end_dt:
                     continue
                     
