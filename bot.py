@@ -419,7 +419,6 @@ def main():
         if not os.environ.get("DBG_POS_KEYS_PRINTED"):
             print("DBG pos keys:", list(pos.keys()), flush=True)
             print("DBG pos sample:", str(pos)[:1200], flush=True)
-            print("DBG cash_flows sample:", pos.get("cash_flows")[:3] if isinstance(pos.get("cash_flows"), list) else pos.get("cash_flows"), flush=True)
             os.environ["DBG_POS_KEYS_PRINTED"] = "1"
 # --- /DEBUG ---
 
