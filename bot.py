@@ -238,8 +238,7 @@ except Exception as e:
 
 # 未回収は “Openだけ” を合算（Exitedは0になるのが普通）
 uncollected_usd = calc_uncollected_usd_from_positions(pos_list_open)
-
-    xp_list = _as_list(xp_ops)
+xp_list = _as_list(xp_ops)
 
     pos_open_count = len(pos_list_open) if isinstance(pos_list_open, list) else 0
     pos_exited_count = len(pos_list_exited) if isinstance(pos_list_exited, list) else 0
