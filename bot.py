@@ -94,23 +94,26 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
         if not any(k in op_type for k in ("fee", "collect", "compound")):
             continue
 
-        usd = None
+    usd = None
 
 # まずよくあるキーを直接見る
-for key in [
-    "usdAmount", "amountUsd", "amountUSD",
-    "valueUsd", "valueUSD",
-    "feeUsd", "feeUSD",
-    "collectedFeesUsd", "collectedFeesUSD"
-]:
-    if key in op:
-    try:
-        usd = float(op.get(key))
-    except:
-        usd = None
+    for key in [
+        "usdAmount", "amountUsd", "amountUSD",
+        "valueUsd", "valueUSD",
+        "feeUsd", "feeUSD",
+        "collectedFeesUsd", "collectedFeesUSD",
+    ]:
+        if key in op:
+            try:
+                usd = float(op.get(key))
+            except:
+                usd = None
 
-    if usd is not None:
-        break
+            if usd is not None:
+                break
+
+
+
 
 # 見つからなければ、ネストされた dict / list を軽く探索（強化版）
 if usd is None:
