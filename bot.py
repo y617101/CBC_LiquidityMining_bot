@@ -387,7 +387,7 @@ if isinstance(pos_list_exited, list):
 fee_usd, fee_count, fee_by_nft, count_by_nft, start_dt, end_dt = \
     calc_fee_usd_24h_from_cash_flows(pos_list_all, datetime.now(JST))
 
-    )
+
 
     # --- NFT blocks (active only) ---
     nft_lines = []
