@@ -383,9 +383,7 @@ def main():
     if isinstance(pos_list_exited, list):
         pos_list_all += pos_list_exited
 
-    fee_usd, fee_count, fee_by_nft, count_by_nft, start_dt, end_dt = calc_fee_usd_daily_from_positions(positions, now_jst=now_jst)
-        calc_fee_usd_24h_from_cash_flows(pos_list_all, datetime.now(JST))
-
+    fee_usd, fee_count, fee_by_nft, count_by_nft, start_dt, end_dt = calc_fee_usd_24h_from_cash_flows(pos_list_all, datetime.now(JST))
 
 
     # --- NFT blocks (active only) ---
