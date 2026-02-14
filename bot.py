@@ -166,7 +166,15 @@ def main():
 
     pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
     xp_list = _as_list(xp_ops)
-    
+
+    pos_count = len(pos_list) if isinstance(pos_list, list) else 0
+    xp_count = len(xp_list)
+
+    print("pos_count:", pos_count, flush=True)
+    print("xp_count:", xp_count, flush=True)
+    print("xp_list length:", len(xp_list), flush=True)
+
+
     
 
 
