@@ -73,7 +73,7 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
     end_dt = now_dt.replace(hour=9, minute=0, second=0, microsecond=0)
     if now_dt < end_dt:
         end_dt = end_dt - timedelta(days=1)
-    start_dt = end_dt - timedelta(days=1)
+    start_dt = end_dt - timedelta(days=7)
 
     total = 0.0
     count = 0
