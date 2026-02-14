@@ -111,8 +111,10 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
             continue
 
         op_type = str(op.get("op_type", "")).lower()
+        n_type += 1
         if not any(k in op_type for k in ("fee", "collect", "compound")):
-            continue
+            pass
+
         n_in_window += 1
 
         usd = None
