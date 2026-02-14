@@ -218,34 +218,70 @@ def get_symbol(tok):
 
 def calc_net_usd(pos):
     """
-    Net（借入差引後）
-    Net = pooled assets USD - amount_to_repay
+    Net（借入差引後・positions API対応版）
+    Net = pooled assets USD - repay_usd
 
-    pooled assets USD =
-        current_amount0 * pool_price + current_amount1
+    pooled assets USD = current_amount0 * pool_price + current_amount1
+    repay_usd は amount_to_repay が無いので cash_flows から推定
     """
 
-    # プール価格（WETH/USD）
     price = to_f(pos.get("pool_price"))
-
-    # 現在保有数量
     a0 = to_f(pos.get("current_amount0"))
     a1 = to_f(pos.get("current_amount1"))
-
-    # 借入返済額（USDC）
-    repay = to_f(pos.get("amount_to_repay"), 0.0)
 
     if price is None or a0 is None or a1 is None:
         return None
 
     pooled_usd = a0 * price + a1
 
-    return pooled_usd - repay
+    repay_usd = to_f(pos.get("amount_to_repay"))
+    if repay_usd is None:
+        repay_usd = extract_repay_usd_from_cash_flows(pos)
+
+    return pooled_usd - repay_usd
+
 
 def calc_fee_apr_a(fee_24h_usd, net_usd):
     if fee_24h_usd is None or net_usd is None or net_usd <= 0:
         return None
     return (fee_24h_usd / net_usd) * 365 * 100
+def extract_repay_usd_from_cash_flows(pos):
+    """
+    positions API に amount_to_repay が無い場合の代替:
+    cash_flows の type == 'lendor-borrow' から USD を拾う（最新を優先）
+    """
+    cfs = pos.get("cash_flows") or []
+    best_ts = None
+    best_val = None
+
+    for cf in cfs:
+        if not isinstance(cf, dict):
+            continue
+        if cf.get("type") != "lendor-borrow":
+            continue
+
+        v = to_f(cf.get("amount_usd"))
+        ts = cf.get("timestamp")
+
+        if v is None:
+            continue
+
+        # timestamp が取れるなら最新を採用
+        try:
+            ts_i = int(ts) if ts is not None else None
+        except:
+            ts_i = None
+
+        if ts_i is None:
+            best_val = v
+            continue
+
+        if best_ts is None or ts_i > best_ts:
+            best_ts = ts_i
+            best_val = v
+
+    # 借入系は符号がマイナスのことがあるので絶対値で扱う
+    return abs(best_val) if best_val is not None else 0.0
 
 def main():
     print("=== BOT START (PRINT) ===", flush=True)
@@ -300,6 +336,11 @@ def main():
         if net is not None:
             net_total += net
 
+        repay_dbg = to_f(pos.get("amount_to_repay"))
+        if repay_dbg is None:
+            repay_dbg = extract_repay_usd_from_cash_flows(pos)
+
+
         # Uncollected (USD)
         fees_value = to_f(pos.get("fees_value"), 0.0)
         uncollected_total += fees_value
@@ -317,6 +358,7 @@ def main():
             f"\nNFT {nft_id}\n"
             f"Status: {status}\n"
             f"Net: {fmt_money(net)}\n"
+            f"Repay(est): {fmt_money(repay_dbg)}\n"
             f"Uncollected: {fees_value:.2f} USD\n"
             f"Uncollected Fees: {to_f(u0, 0.0):.8f} {sym0} / {to_f(u1, 0.0):.6f} {sym1}\n"
             f"Fee APR: {fmt_pct(fee_apr)}\n"
