@@ -94,18 +94,53 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
         if not any(k in op_type for k in ("fee", "collect", "compound")):
             continue
 
-        try:
-            points = float(op.get("points", 0) or 0)
-        except:
-            points = 0.0
+        usd = None
 
-        if points == 0:
-            continue
+# まずよくあるキーを直接見る
+for key in [
+    "usdAmount", "amountUsd", "amountUSD",
+    "valueUsd", "valueUSD",
+    "feeUsd", "feeUSD",
+    "collectedFeesUsd", "collectedFeesUSD"
+]:
+    if key in op:
+    try:
+        usd = float(op.get(key))
+    except:
+        usd = None
 
-        total += points
-        count += 1
+    if usd is not None:
+        break
 
-    return total, count, start_dt, end_dt
+# 見つからなければ、ネストされた dict / list を軽く探索（強化版）
+if usd is None:
+    def walk(obj):
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if isinstance(k, str) and "usd" in k.lower():
+                    try:
+                        return float(v)
+                    except:
+                        pass
+                r = walk(v)
+                if r is not None:
+                    return r
+        elif isinstance(obj, list):
+            for item in obj:
+                r = walk(item)
+                if r is not None:
+                    return r
+        return None
+
+    usd = walk(op)
+
+
+if usd is None:
+    continue
+
+total += usd
+count += 1
+
 
 
 def main():
