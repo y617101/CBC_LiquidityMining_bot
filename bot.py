@@ -303,15 +303,62 @@ def main():
         datetime.now(JST)
     )
 
+        # --- 24h fee (SAFE合算) ---
+    fee_usd, fee_count, start_dt, end_dt = calc_fee_usd_daily_from_xp_ops(
+        xp_list,
+        datetime.now(JST)
+    )
+
+    # --- NFT blocks (active only) ---
+    nft_lines = []
+    net_total = 0.0
+    uncollected_total = 0.0
+
+    for pos in (pos_list_open if isinstance(pos_list_open, list) else []):
+        nft_id = str(pos.get("nft_id", "UNKNOWN"))
+        in_range = pos.get("in_range")
+        status = "ACTIVE"
+        if in_range is False:
+            status = "OUT OF RANGE"
+
+        # Net (USD)
+        net = calc_net_usd(pos)
+        if net is not None:
+            net_total += net
+
+        # Uncollected (USD)
+        fees_value = to_f(pos.get("fees_value"), 0.0)
+        uncollected_total += fees_value
+
+        # Uncollected (token amounts)
+        u0 = pos.get("uncollected_fees0")
+        u1 = pos.get("uncollected_fees1")
+        sym0 = get_symbol(pos.get("token0"))
+        sym1 = get_symbol(pos.get("token1"))
+
+        # Fee APR（A方式）: 現時点はNFT別に確定手数料を安全に紐づけできない可能性があるため N/A
+        fee_apr = None
+
+        nft_lines.append(
+            f"\nNFT {nft_id}\n"
+            f"Status: {status}\n"
+            f"Net: {fmt_money(net)}\n"
+            f"Uncollected: {fees_value:.2f} USD\n"
+            f"Uncollected Fees: {to_f(u0, 0.0):.8f} {sym0} / {to_f(u1, 0.0):.6f} {sym1}\n"
+            f"Fee APR: {fmt_pct(fee_apr)}\n"
+        )
+
     report = (
         "CBC Liquidity Mining — Daily\n"
         f"Period End: {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
         "────────────────\n"
         f"SAFE\n{safe}\n\n"
-        f"・24h確定手数料 ${fee_usd:.2f}\n"
-        f"・未回収手数料 ${uncollected_usd:.2f}\n"
+        f"・24h確定手数料 {fmt_money(fee_usd)}\n"
+        f"・Net合算 {fmt_money(net_total)}\n"
+        f"・未回収手数料 {fmt_money(uncollected_total)}\n"
         f"・Transactions {fee_count}\n"
         f"・Period {start_dt.strftime('%Y-%m-%d %H:%M')} → {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
+        + "".join(nft_lines)
     )
 
     send_telegram(report)
