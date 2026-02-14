@@ -82,11 +82,11 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
         try:
             ts_i = int(ts)
 
-        # ミリ秒なら秒に直す
-        if ts_i > 10_000_000_000:
-            ts_i = ts_i // 1000
+            # ミリ秒なら秒に直す
+            if ts_i > 10_000_000_000:
+                ts_i = ts_i // 1000
 
-        ts_dt = datetime.fromtimestamp(ts_i, JST)
+            ts_dt = datetime.fromtimestamp(ts_i, JST)
 
         except:
             continue
