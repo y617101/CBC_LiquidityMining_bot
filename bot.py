@@ -29,7 +29,6 @@ def send_telegram(text):
 
 
 
-
 from datetime import datetime, timezone, timedelta
 
 JST = timezone(timedelta(hours=9))
