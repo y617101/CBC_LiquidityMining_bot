@@ -186,6 +186,9 @@ def calc_uncollected_usd_from_positions(pos_list):
     total = 0.0
 
     for pos in pos_list:
+
+        print("POS DEBUG KEYS:", list(pos.keys()), flush=True)
+        print("POS DEBUG SAMPLE:", str(pos)[:1200], flush=True)
         
         try:
             v = pos.get("uncollectedFees", {}).get("usd")
