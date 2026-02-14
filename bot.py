@@ -388,7 +388,7 @@ def main():
 
 
 
-# --- NFT blocks (active only) ---
+    # --- NFT blocks (active only) ---
 nft_lines = []
 net_total = 0.0
 uncollected_total = 0.0
