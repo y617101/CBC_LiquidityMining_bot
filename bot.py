@@ -76,7 +76,7 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
     end_dt = now_dt.replace(hour=9, minute=0, second=0, microsecond=0)
     if now_dt < end_dt:
         end_dt = end_dt - timedelta(days=1)
-    start_dt = end_dt - timedelta(days=7)
+    start_dt = end_dt - timedelta(days=1)
 
     total = 0.0
     count = 0
@@ -186,12 +186,8 @@ def calc_uncollected_usd_from_positions(pos_list):
     total = 0.0
 
     for pos in pos_list:
-
-        print("POS DEBUG KEYS:", list(pos.keys()), flush=True)
-        print("POS DEBUG SAMPLE:", str(pos)[:1200], flush=True)
-        
         try:
-            v = pos.get("uncollectedFees", {}).get("usd")
+            v = pos.get("fees_value")  # ✅ これが未回収USD（ログで確認できた）
             if v is None:
                 continue
             total += float(v)
@@ -199,7 +195,6 @@ def calc_uncollected_usd_from_positions(pos_list):
             continue
 
     return total
-
 
 
 
