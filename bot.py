@@ -378,7 +378,7 @@ def main():
     print("pos_open:", pos_open_count, "pos_exited:", pos_exited_count, "xp:", xp_count, flush=True)
 
     # --- 24h fee (cash_flowsベース) ---
-pos_list_all = []
+    pos_list_all = []
     if isinstance(pos_list_open, list):
         pos_list_all += pos_list_open
     if isinstance(pos_list_exited, list):
