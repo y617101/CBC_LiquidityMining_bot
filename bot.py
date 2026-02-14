@@ -323,8 +323,9 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
                 continue
 
             t = _lower(cf.get("type"))
-            # ここが重要：Fees Collected だけ拾う（gas-costs / deposits / borrow は除外）
-            if "fees" not in t or "collect" not in t:
+
+            # 確定手数料は claimed-fees のみ
+            if t != "claimed-fees":
                 continue
 
             ts = _to_ts_sec(cf.get("timestamp"))
