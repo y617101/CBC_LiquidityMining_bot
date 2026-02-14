@@ -326,12 +326,12 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
             # 確定手数料は claimed-fees のみ
             if t != "claimed-fees":
                 continue
+            # ★ここに貼る★（4スペース）
             # --- DBG: claimed-fees を1回だけ出す（確認できたら消す） ---
             if not os.environ.get("DBG_CLAIMED_PRINTED"):
                 print("DBG claimed-fees cf:", cf, flush=True)
                 os.environ["DBG_CLAIMED_PRINTED"] = "1"
-            # --- /DBG ---
-
+                # --- /DBG ---
             ts = _to_ts_sec(cf.get("timestamp"))
             if ts is None:
                 continue
