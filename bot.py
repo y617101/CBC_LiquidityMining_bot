@@ -220,7 +220,6 @@ def main():
         pos_list_all += pos_list_open
   
 
-    # --- TEMP: cash_flow types 一覧 ---
     types = set()
     for p in pos_list_all:
         for cf in (p.get("cash_flows") or []):
