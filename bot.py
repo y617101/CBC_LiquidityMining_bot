@@ -389,10 +389,10 @@ fee_usd, fee_count, fee_by_nft, count_by_nft, start_dt, end_dt = \
 
 
 
-    # --- NFT blocks (active only) ---
-    nft_lines = []
-    net_total = 0.0
-    uncollected_total = 0.0
+# --- NFT blocks (active only) ---
+nft_lines = []
+net_total = 0.0
+uncollected_total = 0.0
 
     for pos in (pos_list_open if isinstance(pos_list_open, list) else []):
         nft_id = str(pos.get("nft_id", "UNKNOWN"))
