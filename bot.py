@@ -216,8 +216,8 @@ def main():
 
     # === DEBUG: positions_open 1件確認 ===
     if isinstance(pos_list_open, list) and len(pos_list_open) > 0:
-    print("DBG pos_open keys:", pos_list_open[0].keys(), flush=True)
-    print("DBG pos_open sample:", str(pos_list_open[0])[:1500], flush=True)
+        print("DBG pos_open keys:", pos_list_open[0].keys(), flush=True)
+        print("DBG pos_open sample:", str(pos_list_open[0])[:1500], flush=True)
 
 
     # pos_list_all を作る（open + exited）
