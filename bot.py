@@ -40,12 +40,13 @@ JST = timezone(timedelta(hours=9))
 
 REVERT_API = "https://api.revert.finance"
 
-def fetch_positions(safe: str) -> dict:
+def fetch_positions(safe: str, active: bool = True):
     url = f"{REVERT_API}/v1/positions/uniswapv3/account/{safe}"
-    params = {"active": "true", "with-v4": "true"}
+    params = {"active": "true" if active else "false", "with-v4": "true"}
     r = requests.get(url, params=params, timeout=30)
     r.raise_for_status()
     return r.json()
+
 
 def fetch_xp_operations(safe: str) -> list:
     url = f"{REVERT_API}/v1/xp-operations/{safe}"
@@ -209,27 +210,48 @@ def main():
         send_telegram("SAFE\nSAFE_NOT_SET\n\nSAFE_ADDRESS をRenderのEnvironment Variablesに入れてね")
         return
 
-    positions = fetch_positions(safe)
-    xp_ops = fetch_xp_operations(safe)
+positions_open = fetch_positions(safe, active=True)
+positions_exited = fetch_positions(safe, active=False)
+
+xp_ops = fetch_xp_operations(safe)
+
+pos_list_open = positions_open if isinstance(positions_open, list) else positions_open.get("positions", positions_open.get("data", []))
+pos_list_exited = positions_exited if isinstance(positions_exited, list) else positions_exited.get("positions", positions_exited.get("data", []))
+
+pos_list_all = []
+if isinstance(pos_list_open, list):
+    pos_list_all += pos_list_open
+if isinstance(pos_list_exited, list):
+    pos_list_all += pos_list_exited
+    # ---- TEMP DEBUG (remove after確認) ----
+try:
+    if isinstance(pos_list_all, list) and len(pos_list_all) > 0:
+        cf = pos_list_all[0].get("cash_flows")
+        print("DBG cash_flows type:", type(cf), flush=True)
+        if isinstance(cf, list) and len(cf) > 0:
+            print("DBG cash_flow keys:", list(cf[0].keys()), flush=True)
+            print("DBG cash_flow sample:", str(cf[0])[:1200], flush=True)
+except Exception as e:
+    print("DBG cash_flows error:", e, flush=True)
+# ----------------------------------------
 
 
-    pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
-    uncollected_usd = calc_uncollected_usd_from_positions(pos_list)
+# 未回収は “Openだけ” を合算（Exitedは0になるのが普通）
+uncollected_usd = calc_uncollected_usd_from_positions(pos_list_open)
+
     xp_list = _as_list(xp_ops)
 
-    pos_count = len(pos_list) if isinstance(pos_list, list) else 0
+    pos_open_count = len(pos_list_open) if isinstance(pos_list_open, list) else 0
+    pos_exited_count = len(pos_list_exited) if isinstance(pos_list_exited, list) else 0
+    pos_all_count = len(pos_list_all)
     xp_count = len(xp_list)
 
-    print("pos_count:", pos_count, flush=True)
-    print("xp_count:", xp_count, flush=True)
-    print("xp_list length:", len(xp_list), flush=True)
+    print("pos_open:", pos_open_count, "pos_exited:", pos_exited_count, "pos_all:", pos_all_count, "xp:", xp_count, flush=True)
 
 
     
 
 
-    pos_count = len(pos_list) if isinstance(pos_list, list) else 0
-    xp_count = len(xp_list)
     fee_usd, fee_count, start_dt, end_dt = calc_fee_usd_daily_from_xp_ops(
     xp_list,
     datetime.now(JST)
