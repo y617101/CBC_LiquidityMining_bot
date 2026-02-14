@@ -120,19 +120,27 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
 
         usd = None
 
-        # よくあるキーを直で探す
-        for key in [
-            "usdAmount", "amountUsd", "amountUSD",
-            "valueUsd", "valueUSD",
-            "feeUsd", "feeUSD",
-            "collectedFeesUsd", "collectedFeesUSD"
-        ]:
-            if key in op:
-                try:
-                    usd = float(op.get(key))
-                except:
-                    usd = None
-                break
+        # まずは points をUSD候補として拾う（原因特定用）
+        if "points" in op:
+            try:
+                usd = float(op.get("points"))
+            except:
+                usd = None
+
+        # points で取れなかった時だけ、既存のUSDキー探索へ
+        if usd is None:
+            for key in [
+                "usdAmount", "amountUsd", "amountUSD",
+                "valueUsd", "valueUSD",
+                "feeUsd", "feeUSD",
+                "collectedFeesUsd", "collectedFeesUSD"
+            ]:
+                if key in op:
+                    try:
+                        usd = float(op.get(key))
+                    except:
+                        usd = None
+                    break
 
         # ネスト探索（dict/listのどこかに "usd" を含むキーがあれば拾う）
         if usd is None:
@@ -154,11 +162,12 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
                             return r
                 return None
 
-            usd = walk(op)
+if usd is None:
+    usd = walk(op)
 
-        # usdが取れなかったものだけ除外（0.0はOK）
-        if usd is None:
-            continue
+if usd is None:
+    continue
+
         n_usd += 1
 
         total += usd
