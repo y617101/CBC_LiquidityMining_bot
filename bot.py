@@ -245,7 +245,7 @@ pos_exited_count = len(pos_list_exited) if isinstance(pos_list_exited, list) els
 pos_all_count = len(pos_list_all)
 xp_count = len(xp_list)
 
-    print("pos_open:", pos_open_count, "pos_exited:", pos_exited_count, "pos_all:", pos_all_count, "xp:", xp_count, flush=True)
+print("pos_open:", pos_open_count, "pos_exited:", pos_exited_count, "pos_all:", pos_all_count, "xp:", xp_count, flush=True)
 
 
     
