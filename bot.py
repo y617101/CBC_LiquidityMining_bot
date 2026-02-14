@@ -258,7 +258,7 @@ datetime.now(JST)
 
 
 
-    report = (
+report = (
     "CBC Liquidity Mining – Daily\n"
     f"Period End: {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
     "────────────────────\n"
