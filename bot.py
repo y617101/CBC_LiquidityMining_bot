@@ -63,84 +63,81 @@ def _as_list(value):
 
 
 def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
-
     end_dt = now_dt.replace(hour=9, minute=0, second=0, microsecond=0)
-
     if now_dt < end_dt:
         end_dt = end_dt - timedelta(days=1)
-
     start_dt = end_dt - timedelta(days=1)
 
     total = 0.0
-count = 0
+    count = 0
 
-    for op in xp_ops_list:
-    if not isinstance(op, dict):
-        continue
+    for op in xp_ops_list:  # ← ここは「4スペース」インデントで必ず関数内
+        if not isinstance(op, dict):
+            continue
 
-    ts = op.get("timestamp")
-    if ts is None:
-        continue
+        ts = op.get("timestamp")
+        if ts is None:
+            continue
 
-    try:
-        ts_dt = datetime.fromtimestamp(int(ts), JST)
-    except:
-        continue
+        try:
+            ts_dt = datetime.fromtimestamp(int(ts), JST)
+        except:
+            continue
 
-    if ts_dt < start_dt or ts_dt >= end_dt:
-        continue
+        if ts_dt < start_dt or ts_dt >= end_dt:
+            continue
 
-    op_type = str(op.get("op_type", "")).lower()
-    if not any(k in op_type for k in ("fee", "collect", "compound")):
-        continue
+        op_type = str(op.get("op_type", "")).lower()
+        if not any(k in op_type for k in ("fee", "collect", "compound")):
+            continue
 
-    usd = None
+        usd = None
 
-    # まずよくあるキーを直接見る
-    for key in [
-        "usdAmount", "amountUsd", "amountUSD",
-        "valueUsd", "valueUSD",
-        "feeUsd", "feeUSD",
-        "collectedFeesUsd", "collectedFeesUSD",
-    ]:
-        if key in op:
-            try:
-                usd = float(op.get(key))
-            except:
-                usd = None
-
-            if usd is not None:
+        # よくあるキーを直で探す
+        for key in [
+            "usdAmount", "amountUsd", "amountUSD",
+            "valueUsd", "valueUSD",
+            "feeUsd", "feeUSD",
+            "collectedFeesUsd", "collectedFeesUSD"
+        ]:
+            if key in op:
+                try:
+                    usd = float(op.get(key))
+                except:
+                    usd = None
                 break
 
-    # 見つからなければ、ネストされた dict / list を軽く探索（強化版）
-    if usd is None:
-        def walk(obj):
-            if isinstance(obj, dict):
-                for k, v in obj.items():
-                    if isinstance(k, str) and "usd" in k.lower():
-                        try:
-                            return float(v)
-                        except:
-                            pass
-                    r = walk(v)
-                    if r is not None:
-                        return r
-            elif isinstance(obj, list):
-                for item in obj:
-                    r = walk(item)
-                    if r is not None:
-                        return r
-            return None
+        # ネスト探索（dict/listのどこかに "usd" を含むキーがあれば拾う）
+        if usd is None:
+            def walk(obj):
+                if isinstance(obj, dict):
+                    for k, v in obj.items():
+                        if isinstance(k, str) and "usd" in k.lower():
+                            try:
+                                return float(v)
+                            except:
+                                pass
+                        r = walk(v)
+                        if r is not None:
+                            return r
+                elif isinstance(obj, list):
+                    for item in obj:
+                        r = walk(item)
+                        if r is not None:
+                            return r
+                return None
 
-        usd = walk(op)
+            usd = walk(op)
 
-    if usd is None:
-        continue
+        # usdが取れなかったものだけ除外（0.0はOK）
+        if usd is None:
+            continue
 
-    total += usd
-    count += 1
+        total += usd
+        count += 1
 
     return total, count, start_dt, end_dt
+
 
 
 
