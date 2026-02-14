@@ -365,18 +365,6 @@ def main():
 
     pos_list_open = positions_open if isinstance(positions_open, list) else positions_open.get("positions", positions_open.get("data", []))
     pos_list_exited = positions_exited if isinstance(positions_exited, list) else positions_exited.get("positions", positions_exited.get("data", []))
-    # --- DBG: exited cash_flows sample (1件だけ) ---
-    print("DBG exited count:", len(pos_list_exited) if isinstance(pos_list_exited, list) else 0, flush=True)
-
-    if isinstance(pos_list_exited, list) and pos_list_exited:
-        p = pos_list_exited[0]
-        print("DBG exited nft_id:", p.get("nft_id"), flush=True)
-        cfs = p.get("cash_flows")
-        print("DBG exited cash_flows type list:", 
-              [x.get("type") for x in cfs] if isinstance(cfs, list) else type(cfs), 
-              flush=True)
-        print("DBG exited cash_flows sample:", str(cfs)[:1500], flush=True)
-    # --- /DBG ---
 
     uncollected_usd = calc_uncollected_usd_from_positions(pos_list_open)
     xp_list = _as_list(xp_ops)
