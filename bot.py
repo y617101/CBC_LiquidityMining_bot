@@ -325,6 +325,13 @@ def main():
 
     for pos in (pos_list_open if isinstance(pos_list_open, list) else []):
         nft_id = str(pos.get("nft_id", "UNKNOWN"))
+        # --- DEBUG: pos keys を1回だけ出す ---
+        if not os.environ.get("DBG_POS_KEYS_PRINTED"):
+            print("DBG pos keys:", list(pos.keys()), flush=True)
+            print("DBG pos sample:", str(pos)[:1200], flush=True)
+            os.environ["DBG_POS_KEYS_PRINTED"] = "1"
+# --- /DEBUG ---
+
         in_range = pos.get("in_range")
         status = "ACTIVE"
         if in_range is False:
