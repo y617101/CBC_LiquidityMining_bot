@@ -198,6 +198,45 @@ def calc_uncollected_usd_from_positions(pos_list):
     return total
 
 
+def to_f(x, default=None):
+    try:
+        return float(x)
+    except:
+        return default
+
+def fmt_money(x):
+    return "N/A" if x is None else f"${x:,.2f}"
+
+def fmt_pct(x):
+    return "N/A" if x is None else f"{x:.2f}%"
+
+def get_symbol(tok):
+    # token0/token1 が dict の想定（なければ fallback）
+    if isinstance(tok, dict):
+        return tok.get("symbol") or tok.get("ticker") or tok.get("name") or "TOKEN"
+    return "TOKEN"
+
+def calc_net_usd(pos):
+    """
+    Net（暫定）:
+    - まず underlying_value があればそれを採用（REVERT側の値が入ってる可能性が高い）
+    - 無ければ pool_price * current_amount0 + current_amount1 で “pooled assets USD” を推定
+    """
+    uv = to_f(pos.get("underlying_value"))
+    if uv is not None:
+        return uv
+
+    price = to_f(pos.get("pool_price"))
+    a0 = to_f(pos.get("current_amount0"))
+    a1 = to_f(pos.get("current_amount1"))
+    if price is None or a0 is None or a1 is None:
+        return None
+    return a0 * price + a1
+
+def calc_fee_apr_a(fee_24h_usd, net_usd):
+    if fee_24h_usd is None or net_usd is None or net_usd <= 0:
+        return None
+    return (fee_24h_usd / net_usd) * 365 * 100
 
 def main():
     print("=== BOT START (PRINT) ===", flush=True)
@@ -216,8 +255,6 @@ def main():
 
     # === DEBUG: positions_open 1件確認 ===
     if isinstance(pos_list_open, list) and len(pos_list_open) > 0:
-        print("DBG pos_open keys:", pos_list_open[0].keys(), flush=True)
-        print("DBG pos_open sample:", str(pos_list_open[0])[:1500], flush=True)
 
 
     # pos_list_all を作る（open + exited）
