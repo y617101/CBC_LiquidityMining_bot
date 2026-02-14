@@ -74,7 +74,7 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
     total = 0.0
 count = 0
 
-for op in xp_ops_list:
+    for op in xp_ops_list:
     if not isinstance(op, dict):
         continue
 
