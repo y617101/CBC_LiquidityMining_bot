@@ -252,51 +252,16 @@ def main():
 
     pos_list_open = positions_open if isinstance(positions_open, list) else positions_open.get("positions", positions_open.get("data", []))
     pos_list_exited = positions_exited if isinstance(positions_exited, list) else positions_exited.get("positions", positions_exited.get("data", []))
-
-    # === DEBUG: positions_open 1件確認 ===
-    if isinstance(pos_list_open, list) and len(pos_list_open) > 0:
-
-
-    # pos_list_all を作る（open + exited）
-    pos_list_all = []
-    if isinstance(pos_list_open, list):
-        pos_list_all += pos_list_open
   
-
-    types = set()
-    for p in pos_list_all:
-        for cf in (p.get("cash_flows") or []):
-            t = cf.get("type")
-            if t:
-                types.add(t)
-    print("DBG cash_flow types:", sorted(types), flush=True)
-
-
-    if isinstance(pos_list_open, list):
-        pos_list_all += pos_list_open
-    if isinstance(pos_list_exited, list):
-        pos_list_all += pos_list_exited
-
-    # --- TEMP DEBUG (cash_flows shape) ---
-    try:
-        if isinstance(pos_list_all, list) and len(pos_list_all) > 0:
-            cf = pos_list_all[0].get("cash_flows")
-            print("DBG cash_flows type:", type(cf), flush=True)
-            if isinstance(cf, list) and len(cf) > 0:
-                print("DBG cash_flow keys:", list(cf[0].keys()), flush=True)
-                print("DBG cash_flow sample:", str(cf[0])[:1200], flush=True)
-    except Exception as e:
-        print("DBG cash_flows error:", e, flush=True)
 
     uncollected_usd = calc_uncollected_usd_from_positions(pos_list_open)
     xp_list = _as_list(xp_ops)
 
     pos_open_count = len(pos_list_open) if isinstance(pos_list_open, list) else 0
     pos_exited_count = len(pos_list_exited) if isinstance(pos_list_exited, list) else 0
-    pos_all_count = len(pos_list_all)
     xp_count = len(xp_list)
 
-    print("pos_open:", pos_open_count, "pos_exited:", pos_exited_count, "pos_all:", pos_all_count, "xp:", xp_count, flush=True)
+    print("pos_open:", pos_open_count, "pos_exited:", pos_exited_count, "xp:", xp_count, flush=True)
 
     fee_usd, fee_count, start_dt, end_dt = calc_fee_usd_daily_from_xp_ops(
         xp_list,
