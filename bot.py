@@ -281,6 +281,76 @@ def extract_repay_usd_from_cash_flows(pos):
 
     # 借入系は符号がマイナスのことがあるので絶対値で扱う
     return abs(best_val) if best_val is not None else 0.0
+def _lower(s):
+    return str(s or "").strip().lower()
+
+def _to_ts_sec(ts):
+    try:
+        ts_i = int(ts)
+        if ts_i > 10_000_000_000:  # ms -> sec
+            ts_i //= 1000
+        return ts_i
+    except:
+        return None
+
+def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
+    """
+    Fees Collected（確定手数料）を positions[*].cash_flows から拾って 24h窓で合計
+    返り値:
+      total_fee_usd, total_count, fee_by_nft(dict), count_by_nft(dict), start_dt, end_dt
+    """
+    end_dt = now_dt.replace(hour=9, minute=0, second=0, microsecond=0)
+    if now_dt < end_dt:
+        end_dt -= timedelta(days=1)
+    start_dt = end_dt - timedelta(days=1)
+
+    total = 0.0
+    total_count = 0
+    fee_by_nft = {}
+    count_by_nft = {}
+
+    for pos in (pos_list_all or []):
+        if not isinstance(pos, dict):
+            continue
+
+        nft_id = str(pos.get("nft_id", "UNKNOWN"))
+        cfs = pos.get("cash_flows") or []
+
+        if not isinstance(cfs, list):
+            continue
+
+        for cf in cfs:
+            if not isinstance(cf, dict):
+                continue
+
+            t = _lower(cf.get("type"))
+            # ここが重要：Fees Collected だけ拾う（gas-costs / deposits / borrow は除外）
+            if "fees" not in t or "collect" not in t:
+                continue
+
+            ts = _to_ts_sec(cf.get("timestamp"))
+            if ts is None:
+                continue
+
+            ts_dt = datetime.fromtimestamp(ts, JST)
+            if ts_dt < start_dt or ts_dt >= end_dt:
+                continue
+
+            amt_usd = to_f(cf.get("amount_usd"))
+            if amt_usd is None:
+                continue
+
+            # Fees Collected は基本プラス想定。念のため0以下は無視（不要なら外してOK）
+            if amt_usd <= 0:
+                continue
+
+            total += float(amt_usd)
+            total_count += 1
+
+            fee_by_nft[nft_id] = fee_by_nft.get(nft_id, 0.0) + float(amt_usd)
+            count_by_nft[nft_id] = count_by_nft.get(nft_id, 0) + 1
+
+    return total, total_count, fee_by_nft, count_by_nft, start_dt, end_dt
 
 def main():
     print("=== BOT START (PRINT) ===", flush=True)
@@ -307,15 +377,16 @@ def main():
 
     print("pos_open:", pos_open_count, "pos_exited:", pos_exited_count, "xp:", xp_count, flush=True)
 
-    fee_usd, fee_count, start_dt, end_dt = calc_fee_usd_daily_from_xp_ops(
-        xp_list,
-        datetime.now(JST)
-    )
+    # --- 24h fee (cash_flowsベース) ---
+pos_list_all = []
+if isinstance(pos_list_open, list):
+    pos_list_all += pos_list_open
+if isinstance(pos_list_exited, list):
+    pos_list_all += pos_list_exited
 
-        # --- 24h fee (SAFE合算) ---
-    fee_usd, fee_count, start_dt, end_dt = calc_fee_usd_daily_from_xp_ops(
-        xp_list,
-        datetime.now(JST)
+fee_usd, fee_count, fee_by_nft, count_by_nft, start_dt, end_dt = \
+    calc_fee_usd_24h_from_cash_flows(pos_list_all, datetime.now(JST))
+
     )
 
     # --- NFT blocks (active only) ---
