@@ -210,15 +210,15 @@ def main():
         send_telegram("SAFE\nSAFE_NOT_SET\n\nSAFE_ADDRESS をRenderのEnvironment Variablesに入れてね")
         return
 
-positions_open = fetch_positions(safe, active=True)
-positions_exited = fetch_positions(safe, active=False)
+    positions_open = fetch_positions(safe, active=True)
+    positions_exited = fetch_positions(safe, active=False)
 
-xp_ops = fetch_xp_operations(safe)
+    xp_ops = fetch_xp_operations(safe)
 
-pos_list_open = positions_open if isinstance(positions_open, list) else positions_open.get("positions", positions_open.get("data", []))
-pos_list_exited = positions_exited if isinstance(positions_exited, list) else positions_exited.get("positions", positions_exited.get("data", []))
+    pos_list_open = positions_open if isinstance(positions_open, list) else positions_open.get("positions", positions_open.get("data", []))
+    pos_list_exited = positions_exited if isinstance(positions_exited, list) else positions_exited.get("positions", positions_exited.get("data", []))
 
-pos_list_all = []
+    pos_list_all = []
 if isinstance(pos_list_open, list):
     pos_list_all += pos_list_open
 if isinstance(pos_list_exited, list):
@@ -258,17 +258,18 @@ datetime.now(JST)
 
 
 
-report = (
-    "CBC Liquidity Mining – Daily\n"
-    f"Period End: {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
-    "────────────────────\n"
-    f"SAFE\n{safe}\n\n"
-    f"■ 24h確定手数料 ${fee_usd:.2f}\n"
-    f"■ 未回収手数料 ${uncollected_usd:.2f}\n"
-    f"■ Transactions {fee_count}\n"
-    f"■ Period {start_dt.strftime('%Y-%m-%d %H:%M')} → {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
-)
-send_telegram(report)
+    report = (
+        "CBC Liquidity Mining — Daily\n"
+        f"Period End: {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
+        "────────────────\n"
+        f"SAFE\n{safe}\n\n"
+        f"・24h確定手数料 ${fee_usd:.2f}\n"
+        f"・未回収手数料 ${uncollected_usd:.2f}\n"
+        f"・Transactions {fee_count}\n"
+        f"・Period {start_dt.strftime('%Y-%m-%d %H:%M')} → {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
+    )
+
+    send_telegram(report)
 
 if __name__ == "__main__":
-        main()
+    main()
