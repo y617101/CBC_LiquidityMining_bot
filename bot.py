@@ -215,7 +215,7 @@ def main():
     pos_list_exited = positions_exited if isinstance(positions_exited, list) else positions_exited.get("positions", positions_exited.get("data", []))
 
     # === DEBUG: positions_open 1件確認 ===
-if isinstance(pos_list_open, list) and len(pos_list_open) > 0:
+    if isinstance(pos_list_open, list) and len(pos_list_open) > 0:
     print("DBG pos_open keys:", pos_list_open[0].keys(), flush=True)
     print("DBG pos_open sample:", str(pos_list_open[0])[:1500], flush=True)
 
