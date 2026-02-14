@@ -63,6 +63,13 @@ def _as_list(value):
 
 
 def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
+    n_all = 0
+    n_dict = 0
+    n_ts = 0
+    n_in_window = 0
+    n_type = 0
+    n_usd = 0
+
     end_dt = now_dt.replace(hour=9, minute=0, second=0, microsecond=0)
     if now_dt < end_dt:
         end_dt = end_dt - timedelta(days=1)
@@ -72,10 +79,16 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
     count = 0
 
     for op in xp_ops_list:  # ← ここは「4スペース」インデントで必ず関数内
+        n_all += 1
+        if isinstance(op, dict):
+            n_dict += 1
+
         if not isinstance(op, dict):
             continue
 
         ts = op.get("timestamp")
+        if ts is not None:
+            n_ts += 1
         if ts is None:
             continue
 
@@ -98,6 +111,7 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
         op_type = str(op.get("op_type", "")).lower()
         if not any(k in op_type for k in ("fee", "collect", "compound")):
             continue
+        n_in_window += 1
 
         usd = None
 
@@ -140,10 +154,14 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
         # usdが取れなかったものだけ除外（0.0はOK）
         if usd is None:
             continue
+        n_usd += 1
 
         total += usd
         count += 1
 
+    print("DBG n_all/n_dict/n_ts/n_in_window/n_type/n_usd:",
+        n_all, n_dict, n_ts, n_in_window, n_type, n_usd, flush=True)
+    
     return total, count, start_dt, end_dt
 
 
