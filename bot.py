@@ -162,16 +162,17 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
                             return r
                 return None
 
-if usd is None:
-    usd = walk(op)
+        if usd is None:
+            usd = walk(op)
 
-if usd is None:
-    continue
+        if usd is None:
+            continue
 
         n_usd += 1
-
         total += usd
         count += 1
+
+
 
     print("DBG n_all/n_dict/n_ts/n_in_window/n_type/n_usd:",
         n_all, n_dict, n_ts, n_in_window, n_type, n_usd, flush=True)
