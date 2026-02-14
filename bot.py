@@ -323,32 +323,50 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
                 continue
 
             t = _lower(cf.get("type"))
-
             # 確定手数料は claimed-fees のみ
             if t != "claimed-fees":
                 continue
-
             ts = _to_ts_sec(cf.get("timestamp"))
             if ts is None:
                 continue
-
-            ts_dt = datetime.fromtimestamp(ts, JST)
-            if ts_dt < start_dt or ts_dt >= end_dt:
-                continue
+                
+                ts_dt = datetime.fromtimestamp(ts, JST)
+                if ts_dt < start_dt or ts_dt >= end_dt:
+                    continue
+                    # --- DBG: claimed-fees を1回だけ表示（確認できたら消す） ---
+        if not os.environ.get("DBG_CLAIMED_PRINTED"):
+            print("DBG claimed-fees cf:", cf, flush=True)
+            os.environ["DBG_CLAIMED_PRINTED"] = "1"
+            # --- /DBG ---
 
         amt_usd = to_f(cf.get("amount_usd"))
-        # amount_usd が無い場合は token0/token1 数量 × prices でUSD化
-    if amt_usd is None:
-        prices = cf.get("prices") or {}
-        p0 = to_f((prices.get("token0") or {}).get("usd"))
-        p1 = to_f((prices.get("token1") or {}).get("usd"))  # ← token1 にする
-        # claimed-fees が持ってそうな数量キー候補（なければ 0 扱い）
-        q0 = to_f(cf.get("claimed_token0")) or to_f(cf.get("fees0")) or to_f(cf.get("amount0")) or 0.0
-        q1 = to_f(cf.get("claimed_token1")) or to_f(cf.get("fees1")) or to_f(cf.get("amount1")) or 0.0
+        if amt_usd is None:
+            prices = cf.get("prices") or {}
+            p0 = to_f((prices.get("token0") or {}).get("usd"))
+            p1 = to_f((prices.get("token1") or {}).get("usd"))
 
-        usd0 = abs(q0) * p0 if p0 is not None else 0.0
-        usd1 = abs(q1) * p1 if p1 is not None else 0.0
-        amt_usd = usd0 + usd1
+            q0 = (
+                to_f(cf.get("claimed_token0")) or
+                to_f(cf.get("collected_token0")) or
+                to_f(cf.get("fees0")) or
+                to_f(cf.get("amount0")) or
+                0.0
+    )      
+           q1 = (
+                to_f(cf.get("claimed_token1")) or
+                to_f(cf.get("collected_token1")) or
+                to_f(cf.get("fees1")) or
+                to_f(cf.get("amount1")) or
+                0.0
+    )
+
+                usd0 = abs(q0) * p0 if p0 is not None else 0.0
+                usd1 = abs(q1) * p1 if p1 is not None else 0.0
+                amt_usd = usd0 + usd1
+
+if amt_usd is None or amt_usd <= 0:
+    continue
+
 
 
             # Fees Collected は基本プラス想定。念のため0以下は無視（不要なら外してOK）
