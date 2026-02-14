@@ -2,6 +2,9 @@ import os
 import requests
 import json
 
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
+
 
 def send_telegram(text):
     token = os.environ.get("TG_BOT_TOKEN")
@@ -178,6 +181,20 @@ def calc_fee_usd_daily_from_xp_ops(xp_ops_list, now_dt):
         n_all, n_dict, n_ts, n_in_window, n_type, n_usd, flush=True)
     
     return total, count, start_dt, end_dt
+    
+def calc_uncollected_usd_from_positions(pos_list):
+    total = 0.0
+
+    for pos in pos_list:
+        try:
+            v = pos.get("fees_value")
+            if v is None:
+                continue
+            total += float(v)
+        except:
+            continue
+
+    return total
 
 
 
@@ -198,6 +215,7 @@ def main():
 
 
     pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
+    uncollected_usd = calc_uncollected_usd_from_positions(pos_list)
     xp_list = _as_list(xp_ops)
 
     pos_count = len(pos_list) if isinstance(pos_list, list) else 0
@@ -226,6 +244,7 @@ def main():
     "────────────────────\n"
     f"SAFE\n{safe}\n\n"
     f"■ 24h確定手数料 ${fee_usd:.2f}\n"
+    f"■ 未回収手数料 ${uncollected_usd:.2f}\n"
     f"■ Transactions {fee_count}\n"
     f"■ Period {start_dt.strftime('%Y-%m-%d %H:%M')} → {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
 )
