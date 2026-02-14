@@ -326,6 +326,12 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
             # 確定手数料は claimed-fees のみ
             if t != "claimed-fees":
                 continue
+            # --- DBG: claimed-fees を1回だけ出す（確認できたら消す） ---
+            if not os.environ.get("DBG_CLAIMED_PRINTED"):
+                print("DBG claimed-fees cf:", cf, flush=True)
+                os.environ["DBG_CLAIMED_PRINTED"] = "1"
+            # --- /DBG ---
+
             ts = _to_ts_sec(cf.get("timestamp"))
             if ts is None:
                 continue
@@ -403,7 +409,9 @@ def main():
     if isinstance(pos_list_exited, list):
         pos_list_all += pos_list_exited
 
-    fee_usd, fee_count, fee_by_nft, count_by_nft, start_dt, end_dt = calc_fee_usd_24h_from_cash_flows(pos_list_all, datetime.now(JST))
+    test_now = datetime.now(JST).replace(hour=12, minute=0, second=0, microsecond=0)
+    fee_usd, fee_count, fee_by_nft, count_by_nft, start_dt, end_dt = calc_fee_usd_24h_from_cash_flows(pos_list_all, test_now)
+
 
 
     # --- NFT blocks (active only) ---
