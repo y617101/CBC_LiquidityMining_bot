@@ -329,10 +329,6 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
                 continue
 
             # --- DBG: claimed-fees を1回だけ出す ---
-            if not os.environ.get("DBG_CLAIMED_PRINTED"):
-                print("DBG claimed-fees cf:", cf, flush=True)
-                os.environ["DBG_CLAIMED_PRINTED"] = "1"
-            # --- /DBG ---
 
             ts = _to_ts_sec(cf.get("timestamp"))
             if ts is None:
