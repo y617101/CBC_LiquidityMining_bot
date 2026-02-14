@@ -387,9 +387,9 @@ def main():
 
 
     # --- NFT blocks (active only) ---
-nft_lines = []
-net_total = 0.0
-uncollected_total = 0.0
+    nft_lines = []
+    net_total = 0.0
+    uncollected_total = 0.0
 
     for pos in (pos_list_open if isinstance(pos_list_open, list) else []):
         nft_id = str(pos.get("nft_id", "UNKNOWN"))
