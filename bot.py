@@ -191,7 +191,6 @@ def calc_uncollected_usd_from_positions(pos_list):
             if v is None:
                 continue
             total += float(v)
-            print("DBG fees_value:", v, "subtotal:", total, flush=True)
         except:
             continue
 
@@ -216,7 +215,6 @@ def main():
 
     pos_list = positions if isinstance(positions, list) else positions.get("positions", positions.get("data", []))
     uncollected_usd = calc_uncollected_usd_from_positions(pos_list)
-    print("DBG uncollected_usd FINAL:", uncollected_usd, flush=True)
     xp_list = _as_list(xp_ops)
 
     pos_count = len(pos_list) if isinstance(pos_list, list) else 0
