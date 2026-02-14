@@ -218,20 +218,29 @@ def get_symbol(tok):
 
 def calc_net_usd(pos):
     """
-    Net（暫定）:
-    - まず underlying_value があればそれを採用（REVERT側の値が入ってる可能性が高い）
-    - 無ければ pool_price * current_amount0 + current_amount1 で “pooled assets USD” を推定
-    """
-    uv = to_f(pos.get("underlying_value"))
-    if uv is not None:
-        return uv
+    Net（借入差引後）
+    Net = pooled assets USD - amount_to_repay
 
+    pooled assets USD =
+        current_amount0 * pool_price + current_amount1
+    """
+
+    # プール価格（WETH/USD）
     price = to_f(pos.get("pool_price"))
+
+    # 現在保有数量
     a0 = to_f(pos.get("current_amount0"))
     a1 = to_f(pos.get("current_amount1"))
+
+    # 借入返済額（USDC）
+    repay = to_f(pos.get("amount_to_repay"), 0.0)
+
     if price is None or a0 is None or a1 is None:
         return None
-    return a0 * price + a1
+
+    pooled_usd = a0 * price + a1
+
+    return pooled_usd - repay
 
 def calc_fee_apr_a(fee_24h_usd, net_usd):
     if fee_24h_usd is None or net_usd is None or net_usd <= 0:
