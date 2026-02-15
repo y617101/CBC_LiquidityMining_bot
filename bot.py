@@ -343,14 +343,20 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
     
         amt_usd = (abs(q0) * (p0 or 0.0)) + (abs(q1) * (p1 or 0.0))
     
-        if not amt_usd or amt_usd <= 0:
+        # ---- 最終ガード（None/0/マイナス/NaN を弾く）----
+        if amt_usd is None:
+            continue
+        try:
+            amt_usd = float(amt_usd)
+        except Exception:
+            continue
+        if not (amt_usd > 0):
             continue
     
-        total += float(amt_usd)
+        total += amt_usd
         total_count += 1
-        fee_by_nft[nft_id] = fee_by_nft.get(nft_id, 0.0) + float(amt_usd)
+        fee_by_nft[nft_id] = fee_by_nft.get(nft_id, 0.0) + amt_usd
         count_by_nft[nft_id] = count_by_nft.get(nft_id, 0) + 1
-
 
     return total, total_count, fee_by_nft, count_by_nft, start_dt, end_dt
 
