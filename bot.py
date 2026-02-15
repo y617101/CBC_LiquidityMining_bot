@@ -331,8 +331,11 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
             continue
     
         t = _lower(cf.get("type"))
+
+        # ここ：claimed-fees を拾う（保険で fees-collected も許可）
         if t not in ("claimed-fees", "fees-collected"):
             continue
+
     
         ts = _to_ts_sec(cf.get("timestamp"))
         if ts is None:
