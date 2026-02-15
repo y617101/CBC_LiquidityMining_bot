@@ -366,7 +366,6 @@ if amt_usd is None:
 
 # 最終ガード（マイナス/ゼロ/NaN を弾く）
 if not amt_usd or amt_usd <= 0:
-    continue
 
 
     # USD が取れない/ゼロ/マイナスは除外
