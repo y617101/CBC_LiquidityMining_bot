@@ -270,25 +270,32 @@ def extract_repay_usd_from_cash_flows(pos):
         if t not in ("claimed-fees", "fees-collected"):
             continue
 
-            
-        if cf.get("type") != "lendor-borrow":
+        ts = _to_ts_sec(cf.get("timestamp"))
+        if ts is None:
+            continue
+        
+        ts_dt = datetime.fromtimestamp(ts, JST)
+        if ts_dt < start_dt or ts_dt >= end_dt:
+            continue
+        
+        # USD が直であるならそれ優先
+        amt_usd = to_f(cf.get("amount_usd"))
+        
+        if amt_usd is None:
+            prices = cf.get("prices") or {}
+            p0 = to_f((prices.get("token0") or {}).get("usd"))
+            p1 = to_f((prices.get("token1") or {}).get("usd"))
+        
+            q0 = to_f(cf.get("collected_fees_token0")) or to_f(cf.get("claimed_token0")) or to_f(cf.get("fees0")) or to_f(cf.get("amount0")) or 0.0
+            q1 = to_f(cf.get("collected_fees_token1")) or to_f(cf.get("claimed_token1")) or to_f(cf.get("fees1")) or to_f(cf.get("amount1")) or 0.0
+        
+            usd0 = abs(q0) * (p0 or 0.0)
+            usd1 = abs(q1) * (p1 or 0.0)
+            amt_usd = usd0 + usd1
+        
+        if not amt_usd or amt_usd <= 0:
             continue
 
-        v = to_f(cf.get("amount_usd"))
-        ts = cf.get("timestamp")
-
-        if v is None:
-            continue
-
-        # timestamp が取れるなら最新を採用
-        try:
-            ts_i = int(ts) if ts is not None else None
-        except:
-            ts_i = None
-
-        if ts_i is None:
-            best_val = v
-            continue
 
         if best_ts is None or ts_i > best_ts:
             best_ts = ts_i
