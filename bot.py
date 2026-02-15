@@ -369,17 +369,14 @@ if not amt_usd or amt_usd <= 0:
     continue
 
 
+    # USD が取れない/ゼロ/マイナスは除外
+    if not amt_usd or amt_usd <= 0:
+        continue
 
-
-            # Fees Collected は基本プラス想定。念のため0以下は無視（不要なら外してOK）
-            if amt_usd <= 0:
-                continue
-
-            total += float(amt_usd)
-            total_count += 1
-
-            fee_by_nft[nft_id] = fee_by_nft.get(nft_id, 0.0) + float(amt_usd)
-            count_by_nft[nft_id] = count_by_nft.get(nft_id, 0) + 1
+    total += float(amt_usd)
+    total_count += 1
+    fee_by_nft[nft_id] = fee_by_nft.get(nft_id, 0.0) + float(amt_usd)
+    count_by_nft[nft_id] = count_by_nft.get(nft_id, 0) + 1
 
     return total, total_count, fee_by_nft, count_by_nft, start_dt, end_dt
 
