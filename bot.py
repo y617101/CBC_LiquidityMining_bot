@@ -341,22 +341,33 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
 
         amt_usd = to_f(cf.get("amount_usd"))
 
-        if amt_usd is None:
-            prices = cf.get("prices") or {}
-            p0 = to_f((prices.get("token0") or {}).get("usd"))
-            p1 = to_f((prices.get("token1") or {}).get("usd"))
-        
-            q0 = to_f(cf.get("collected_fees_token0"))
-            q1 = to_f(cf.get("collected_fees_token1"))
+if amt_usd is None:
+    prices = cf.get("prices") or {}
+    p0 = to_f((prices.get("token0") or {}).get("usd")) or 0.0
+    p1 = to_f((prices.get("token1") or {}).get("usd")) or 0.0
 
-        
-            usd0 = abs(q0) * p0 if p0 is not None else 0.0
-            usd1 = abs(q1) * p1 if p1 is not None else 0.0
-            amt_usd = usd0 + usd1
-        
-        # ここで1回だけ弾く（重複いらない）
-        if amt_usd is None or amt_usd <= 0:
-            continue
+    # claimed-fees は key が揺れるので「候補を順番に拾う」
+    q0 = (
+        to_f(cf.get("collected_fees_token0")) or
+        to_f(cf.get("claimed_token0")) or
+        to_f(cf.get("fees0")) or
+        to_f(cf.get("amount0")) or
+        0.0
+    )
+    q1 = (
+        to_f(cf.get("collected_fees_token1")) or
+        to_f(cf.get("claimed_token1")) or
+        to_f(cf.get("fees1")) or
+        to_f(cf.get("amount1")) or
+        0.0
+    )
+
+    amt_usd = abs(q0) * p0 + abs(q1) * p1
+
+# 最終ガード（マイナス/ゼロ/NaN を弾く）
+if not amt_usd or amt_usd <= 0:
+    continue
+
 
 
 
