@@ -347,7 +347,7 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
             p1 = to_f((prices.get("token1") or {}).get("usd"))
         
             q0 = to_f(cf.get("collected_fees_token0"))
-　　　　　　　q1 = to_f(cf.get("collected_fees_token1"))
+            q1 = to_f(cf.get("collected_fees_token1"))
 
         
             usd0 = abs(q0) * p0 if p0 is not None else 0.0
