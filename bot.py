@@ -327,7 +327,8 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
         for cf in cfs:
             if not isinstance(cf, dict):
                 continue
-
+                
+        t = _lower(cf.get("type"))
         # 確定手数料は fees-collected（仕様）
         if t != "fees-collected":
             continue
