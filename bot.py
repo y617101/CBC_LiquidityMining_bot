@@ -255,6 +255,12 @@ def extract_repay_usd_from_cash_flows(pos):
     for cf in cfs:
         if not isinstance(cf, dict):
             continue
+            
+        t = _lower(cf.get("type"))
+
+        if t != "fees-collected":
+            continue
+            
         if cf.get("type") != "lendor-borrow":
             continue
 
