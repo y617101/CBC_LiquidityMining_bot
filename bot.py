@@ -317,65 +317,40 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
 
         if not isinstance(cfs, list):
             continue
-
+            
         for cf in cfs:
             if not isinstance(cf, dict):
                 continue
 
-            t = _lower(cf.get("type"))
+        t = _lower(cf.get("type"))
+        if t != "claimed-fees":
+            continue
 
-            # 確定手数料は claimed-fees のみ
-            if t != "claimed-fees":
-                continue
+        ts = _to_ts_sec(cf.get("timestamp"))
+        if ts is None:
+            continue
 
-            # --- DBG: claimed-fees を1回だけ出す ---
+        ts_dt = datetime.fromtimestamp(ts, JST)
+        if ts_dt < start_dt or ts_dt >= end_dt:
+            continue
 
-            ts = _to_ts_sec(cf.get("timestamp"))
-            if ts is None:
-                continue
-                
-                ts_dt = datetime.fromtimestamp(ts, JST)
-                if ts_dt < start_dt or ts_dt >= end_dt:
-                    continue
-                    
+        prices = cf.get("prices") or {}
+        p0 = to_f((prices.get("token0") or {}).get("usd"))
+        p1 = to_f((prices.get("token1") or {}).get("usd"))
+    
+        q0 = to_f(cf.get("collected_fees_token0")) or to_f(cf.get("claimed_token0")) or to_f(cf.get("amount0")) or 0.0
+        q1 = to_f(cf.get("collected_fees_token1")) or to_f(cf.get("claimed_token1")) or to_f(cf.get("amount1")) or 0.0
+    
+        amt_usd = (abs(q0) * (p0 or 0.0)) + (abs(q1) * (p1 or 0.0))
+    
+        if not amt_usd or amt_usd <= 0:
+            continue
+    
+        total += float(amt_usd)
+        total_count += 1
+        fee_by_nft[nft_id] = fee_by_nft.get(nft_id, 0.0) + float(amt_usd)
+        count_by_nft[nft_id] = count_by_nft.get(nft_id, 0) + 1
 
-        amt_usd = to_f(cf.get("amount_usd"))
-
-if amt_usd is None:
-    prices = cf.get("prices") or {}
-    p0 = to_f((prices.get("token0") or {}).get("usd")) or 0.0
-    p1 = to_f((prices.get("token1") or {}).get("usd")) or 0.0
-
-    # claimed-fees は key が揺れるので「候補を順番に拾う」
-    q0 = (
-        to_f(cf.get("collected_fees_token0")) or
-        to_f(cf.get("claimed_token0")) or
-        to_f(cf.get("fees0")) or
-        to_f(cf.get("amount0")) or
-        0.0
-    )
-    q1 = (
-        to_f(cf.get("collected_fees_token1")) or
-        to_f(cf.get("claimed_token1")) or
-        to_f(cf.get("fees1")) or
-        to_f(cf.get("amount1")) or
-        0.0
-    )
-
-    amt_usd = abs(q0) * p0 + abs(q1) * p1
-
-# 最終ガード（マイナス/ゼロ/NaN を弾く）
-if not amt_usd or amt_usd <= 0:
-
-
-    # USD が取れない/ゼロ/マイナスは除外
-    if not amt_usd or amt_usd <= 0:
-        continue
-
-    total += float(amt_usd)
-    total_count += 1
-    fee_by_nft[nft_id] = fee_by_nft.get(nft_id, 0.0) + float(amt_usd)
-    count_by_nft[nft_id] = count_by_nft.get(nft_id, 0) + 1
 
     return total, total_count, fee_by_nft, count_by_nft, start_dt, end_dt
 
