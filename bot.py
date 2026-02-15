@@ -249,6 +249,14 @@ def extract_repay_usd_from_cash_flows(pos):
     cash_flows の type == 'lendor-borrow' から USD を拾う（最新を優先）
     """
     cfs = pos.get("cash_flows") or []
+    if not os.environ.get("DBG_CF_TYPES_PRINTED"):
+        types = []
+        for cf in cfs:
+            if isinstance(cf, dict):
+                types.append(_lower(cf.get("type")))
+        print("DBG cash_flow types:", sorted(set([t for t in types if t])), flush=True)
+        os.environ["DBG_CF_TYPES_PRINTED"] = "1"
+
     best_ts = None
     best_val = None
 
