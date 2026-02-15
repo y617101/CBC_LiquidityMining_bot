@@ -258,8 +258,10 @@ def extract_repay_usd_from_cash_flows(pos):
             
         t = _lower(cf.get("type"))
 
-        if t != "fees-collected":
+        # 確定手数料として拾うタイプ（現状ログでは claimed-fees が出てる）
+        if t not in ("claimed-fees", "fees-collected"):
             continue
+
             
         if cf.get("type") != "lendor-borrow":
             continue
@@ -324,16 +326,14 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
         if not isinstance(cfs, list):
             continue
             
-        for cf in cfs:
-            if not isinstance(cf, dict):
-                continue
-                
-        t = _lower(cf.get("type"))
-        # 確定手数料は fees-collected（仕様）
-        if t != "fees-collected":
+    for cf in cfs:
+        if not isinstance(cf, dict):
             continue
-
-
+    
+        t = _lower(cf.get("type"))
+        if t not in ("claimed-fees", "fees-collected"):
+            continue
+    
         ts = _to_ts_sec(cf.get("timestamp"))
         if ts is None:
             continue
@@ -343,12 +343,9 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
             continue
 
             prices = cf.get("prices") or {}
-        p0 = to_f((prices.get("token0") or {}).get("usd")) or 0.0
-        p1 = to_f((prices.get("token1") or {}).get("usd")) or 0.0
-    
-        # fees-collected は collected_fees_token0/1 を優先して読む
-        q0 = to_f(cf.get("collected_fees_token0")) or to_f(cf.get("amount0")) or 0.0
-        q1 = to_f(cf.get("collected_fees_token1")) or to_f(cf.get("amount1")) or 0.0
+        q0 = to_f(cf.get("collected_fees_token0")) or to_f(cf.get("claimed_token0")) or to_f(cf.get("fees0")) or to_f(cf.get("amount0")) or 0.0
+        q1 = to_f(cf.get("collected_fees_token1")) or to_f(cf.get("claimed_token1")) or to_f(cf.get("fees1")) or to_f(cf.get("amount1")) or 0.0
+
     
         amt_usd = abs(q0) * p0 + abs(q1) * p1
 
