@@ -325,8 +325,15 @@ def main():
     mode = (os.environ.get("REPORT_MODE") or "").upper()
 
     if mode == "WEEKLY":
-        send_telegram("WEEKLY TEST OK 🌸")
-        return
+        mode = os.getenv("REPORT_MODE", "DAILY").upper()
+
+    if mode == "WEEKLY":
+        report = build_weekly_report()
+    else:
+        report = build_daily_report()
+    
+    send_telegram(report)
+
 
 
     safe = os.environ.get("SAFE_ADDRESS", "SAFE_NOT_SET")
