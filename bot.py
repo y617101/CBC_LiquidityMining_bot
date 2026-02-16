@@ -484,7 +484,9 @@ def main():
             f"Status: {status}\n"
             f"Net: {fmt_money(net)}\n"
             f"Uncollected: {fees_value:.2f} USD\n"
-            f"Uncollected Fees: {to_f(u0, 0.0):.8f} {sym0} / {to_f(u1, 0.0):.6f} {sym1}\n"
+            f"Uncollected Fees:\n"
+            f"{to_f(u0, 0.0):.8f} {sym0}\n"
+            f"{to_f(u1, 0.0):.6f} {sym1}\n"
             f"Fee APR: {fmt_pct(fee_apr_ui)}\n"
 
         )
