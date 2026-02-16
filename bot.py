@@ -310,11 +310,6 @@ def _to_ts_sec(ts):
         return None
 
 def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
-    """
-    Fees Collected（確定手数料）を positions[*].cash_flows から拾って 24h窓で合計
-    返り値:
-      total_fee_usd, total_count, fee_by_nft(dict), count_by_nft(dict), start_dt, end_dt
-    """
     end_dt = now_dt.replace(hour=9, minute=0, second=0, microsecond=0)
     if now_dt < end_dt:
         end_dt -= timedelta(days=1)
@@ -325,57 +320,71 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
     fee_by_nft = {}
     count_by_nft = {}
 
+    # DBG: 24h窓で拾えたtypeを確認する
+    dbg_types = set()
+
     for pos in (pos_list_all or []):
         if not isinstance(pos, dict):
             continue
 
         nft_id = str(pos.get("nft_id", "UNKNOWN"))
         cfs = pos.get("cash_flows") or []
-
         if not isinstance(cfs, list):
             continue
-            
-    for cf in cfs:
-        if not isinstance(cf, dict):
-            continue
-    
 
-    
-        ts = _to_ts_sec(cf.get("timestamp"))
-        if ts is None:
-            continue
+        for cf in cfs:
+            if not isinstance(cf, dict):
+                continue
 
-        ts_dt = datetime.fromtimestamp(ts, JST)
-        if ts_dt < start_dt or ts_dt >= end_dt:
-            continue
+            t = _lower(cf.get("type"))
+            if t:
+                dbg_types.add(t)
 
-            prices = cf.get("prices") or {}
-        q0 = to_f(cf.get("collected_fees_token0")) or to_f(cf.get("claimed_token0")) or to_f(cf.get("fees0")) or to_f(cf.get("amount0")) or 0.0
-        q1 = to_f(cf.get("collected_fees_token1")) or to_f(cf.get("claimed_token1")) or to_f(cf.get("fees1")) or to_f(cf.get("amount1")) or 0.0
+            # ✅ いまはまず「確定手数料type候補」を見つけたいので、
+            #    ここは一旦ゆるくして、fee/collect/claim を含むものだけ拾ってDBGする
+            if not any(k in t for k in ("fee", "collect", "claim")):
+                continue
 
-    
-        amt_usd = abs(q0) * p0 + abs(q1) * p1
+            ts = _to_ts_sec(cf.get("timestamp"))
+            if ts is None:
+                continue
 
-    
-        # ---- 最終ガード（None/0/マイナス/NaN を弾く）----
-        if amt_usd is None:
-            continue
-        try:
-            amt_usd = float(amt_usd)
-        except Exception:
-            continue
-        if not (amt_usd > 0):
-            continue
-    
-        total += amt_usd
-        total_count += 1
-        fee_by_nft[nft_id] = fee_by_nft.get(nft_id, 0.0) + amt_usd
-        count_by_nft[nft_id] = count_by_nft.get(nft_id, 0) + 1
+            ts_dt = datetime.fromtimestamp(ts, JST)
+            if ts_dt < start_dt or ts_dt >= end_dt:
+                continue
 
+            # まずUSD直があれば優先
+            amt_usd = to_f(cf.get("amount_usd"))
 
-        # DEBUG: 24h窓で拾えた件数
-    print("DBG fees-collected count(24h):", total_count, flush=True)
+            # 無ければ prices + amount0/1系で推定
+            if amt_usd is None:
+                prices = cf.get("prices") or {}
+                p0 = to_f((prices.get("token0") or {}).get("usd")) or 0.0
+                p1 = to_f((prices.get("token1") or {}).get("usd")) or 0.0
+
+                q0 = to_f(cf.get("collected_fees_token0")) or to_f(cf.get("claimed_token0")) or to_f(cf.get("fees0")) or to_f(cf.get("amount0")) or 0.0
+                q1 = to_f(cf.get("collected_fees_token1")) or to_f(cf.get("claimed_token1")) or to_f(cf.get("fees1")) or to_f(cf.get("amount1")) or 0.0
+
+                amt_usd = abs(q0) * p0 + abs(q1) * p1
+
+            # ガード
+            try:
+                amt_usd = float(amt_usd)
+            except Exception:
+                continue
+            if not (amt_usd > 0):
+                continue
+
+            total += amt_usd
+            total_count += 1
+            fee_by_nft[nft_id] = fee_by_nft.get(nft_id, 0.0) + amt_usd
+            count_by_nft[nft_id] = count_by_nft.get(nft_id, 0) + 1
+
+    print("DBG all cash_flow types (seen):", sorted(dbg_types), flush=True)
+    print("DBG fee-like count(24h):", total_count, flush=True)
+
     return total, total_count, fee_by_nft, count_by_nft, start_dt, end_dt
+
 
 def main():
     print("=== BOT START (PRINT) ===", flush=True)
