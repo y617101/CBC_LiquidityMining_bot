@@ -322,17 +322,15 @@ def resolve_symbol(pos, which):
 
 
 def main():
-    mode = (os.environ.get("REPORT_MODE") or "").upper()
-
-    if mode == "WEEKLY":
-        mode = os.getenv("REPORT_MODE", "DAILY").upper()
+    mode = os.getenv("REPORT_MODE", "DAILY").upper()
 
     if mode == "WEEKLY":
         report = build_weekly_report()
     else:
         report = build_daily_report()
-    
+
     send_telegram(report)
+
 
 
 
