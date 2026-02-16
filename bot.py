@@ -459,8 +459,14 @@ def main():
         if net is not None:
             net_total += net
         
+        # Fee APR（A方式）
         fee_usd_nft = fee_by_nft.get(str(nft_id), 0.0)
         fee_apr = calc_fee_apr_a(fee_usd_nft, net)
+        
+        fee_apr_ui = to_f(
+            ((pos.get("performance") or {}).get("hodl") or {}).get("fee_apr")
+        )
+
 
 
 
