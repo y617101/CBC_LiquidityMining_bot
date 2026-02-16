@@ -470,6 +470,12 @@ def main():
         u1 = pos.get("uncollected_fees1")
         sym0 = get_symbol(pos.get("token0"))
         sym1 = get_symbol(pos.get("token1"))
+        if sym0 == "TOKEN" or sym1 == "TOKEN":
+            toks = pos.get("tokens") or []
+            if isinstance(toks, list) and len(toks) >= 2:
+        sym0 = sym0 if sym0 != "TOKEN" else get_symbol(toks[0])
+        sym1 = sym1 if sym1 != "TOKEN" else get_symbol(toks[1])
+
 
 
 
