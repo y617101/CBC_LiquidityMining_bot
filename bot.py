@@ -475,6 +475,9 @@ def main():
         fee_usd_nft = fee_by_nft.get(str(nft_id), 0.0)
         fee_apr = calc_fee_apr_a(fee_usd_nft, net)
 
+        fee_apr_ui = to_f(
+            ((pos.get("performance") or {}).get("hodl") or {}).get("fee_apr")
+        )
 
         nft_lines.append(
             f"\nNFT {nft_id}\n"
@@ -482,7 +485,8 @@ def main():
             f"Net: {fmt_money(net)}\n"
             f"Uncollected: {fees_value:.2f} USD\n"
             f"Uncollected Fees: {to_f(u0, 0.0):.8f} {sym0} / {to_f(u1, 0.0):.6f} {sym1}\n"
-            f"Fee APR: {fmt_pct(fee_apr)}\n"
+            f"Fee APR: {fmt_pct(fee_apr_ui)}\n"
+
         )
 
     safe_fee_apr = calc_fee_apr_a(fee_usd, net_total)
