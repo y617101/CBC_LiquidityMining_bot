@@ -254,11 +254,7 @@ def calc_fee_apr_a(fee_24h_usd, net_usd):
     return (fee_24h_usd / net_usd) * 365 * 100
 
 def extract_repay_usd_from_cash_flows(pos):
-    """
-    借入残高（USD）を cash_flows から推定する
-    残高 = sum(lendor-borrow) - sum(lendor-repay)
-    ※ cash_flows に amount_usd が無い時は amount × prices.usd で推定する
-    """
+
     cfs = pos.get("cash_flows") or []
     if not isinstance(cfs, list):
         return 0.0
@@ -271,48 +267,30 @@ def extract_repay_usd_from_cash_flows(pos):
             continue
 
         t = _lower(cf.get("type"))
+
         if t not in ("lendor-borrow", "lendor-repay"):
             continue
 
-        # 1) まずUSD直を拾う
-        v = to_f(cf.get("amount_usd"))
-        if v is None: v = to_f(cf.get("usd"))
-        if v is None: v = to_f(cf.get("value_usd"))
-        if v is None: v = to_f(cf.get("valueUsd"))
-        if v is None: v = to_f(cf.get("amountUsd"))
-
-        # 2) USD直が無いなら amount × price(usd) で作る
-        if v is None:
-            amt = to_f(cf.get("amount"))
-            prices = cf.get("prices") or {}
-            p = to_f((prices.get("token0") or {}).get("usd"))
-            if p is None:
-                p = to_f((prices.get("token1") or {}).get("usd"))
-            if p is None:
-                p = to_f((prices.get("native_token") or {}).get("usd"))
-
-            if amt is not None and p is not None:
-                v = abs(float(amt)) * float(p)
+        # 🔥 ここが最重要
+        v = to_f(cf.get("total_debt"))
 
         if v is None:
             continue
 
-        v = abs(float(v))
-
         if t == "lendor-borrow":
             borrow_usd += v
-        else:
+        elif t == "lendor-repay":
             repay_usd += v
 
     debt = borrow_usd - repay_usd
+
     if debt < 0:
         debt = 0.0
 
-    if not os.environ.get("DBG_DEBT_ONCE"):
-        print("DBG DEBT borrow_usd:", borrow_usd, "repay_usd:", repay_usd, "debt:", debt, flush=True)
-        os.environ["DBG_DEBT_ONCE"] = "1"
+    print("DBG DEBT borrow_usd:", borrow_usd, "repay_usd:", repay_usd, "debt:", debt, flush=True)
 
     return debt
+
 
 
 
