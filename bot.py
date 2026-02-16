@@ -274,34 +274,43 @@ def calc_fee_apr_a(fee_24h_usd, net_usd):
 def extract_repay_usd_from_cash_flows(pos):
     """
     借入残高（USD）を cash_flows から推定する
-    残高 = sum(lendor-borrow) - sum(lendor-repay)
-
-    USDが直で無い場合:
-      cf.amount (raw) / 10**decimals * token_price_usd で推定
-      token_price_usd は pos["tokens"][token_id]["price"] を優先
+    優先：total_debt（あればそれが残高）
+    予備：sum(lendor-borrow) - sum(lendor-repay)（USD換算できる場合）
     """
     cfs = pos.get("cash_flows") or []
     if not isinstance(cfs, list):
         return 0.0
 
-    # pos["tokens"] は dict(アドレス→情報) の形が多い
-    tokens = pos.get("tokens") or {}
+    # --- ① total_debt を最優先で拾う（最も確実） ---
+    best_ts = None
+    best_debt = None
+    for cf in cfs:
+        if not isinstance(cf, dict):
+            continue
+        t = _lower(cf.get("type"))
+        if t not in ("lendor-borrow", "lendor-repay"):
+            continue
 
-    def _price_usd(token_addr: str):
-        if not token_addr:
-            return None
-        a = str(token_addr).strip().lower()
-        t = tokens.get(a)
-        if isinstance(t, dict):
-            # price は "1969.54..." みたいな文字列のことがある
-            p = to_f(t.get("price"))
-            if p is not None:
-                return p
-            # 念のため prices.usd も見る
-            p2 = to_f(((t.get("prices") or {}).get("usd")))
-            if p2 is not None:
-                return p2
-        return None
+        d = to_f(cf.get("total_debt"))
+        if d is None:
+            continue
+
+        ts = cf.get("timestamp") or cf.get("ts")
+        ts = _to_ts_sec(ts)  # あなたの既存ヘルパーがある前提
+        if ts is None:
+            ts = 0
+
+        if best_ts is None or ts >= best_ts:
+            best_ts = ts
+            best_debt = abs(float(d))
+
+    if best_debt is not None:
+        return best_debt
+
+    # --- ② 予備：借入−返済（USD換算できる時だけ） ---
+    # token0/token1 アドレスを pos から取る（ログ上、文字列で入ってる）
+    t0 = _lower(pos.get("token0"))
+    t1 = _lower(pos.get("token1"))
 
     borrow_usd = 0.0
     repay_usd = 0.0
@@ -311,63 +320,37 @@ def extract_repay_usd_from_cash_flows(pos):
             continue
 
         t = _lower(cf.get("type"))
-
-        # 👇 これを追加
-        if t in ("lendor-borrow", "lendor-repay") and not os.environ.get("DBG_LENDOR_ONCE"):
-            print("DBG LENDOR sample:", str(cf)[:1500], flush=True)
-            os.environ["DBG_LENDOR_ONCE"] = "1"
-
         if t not in ("lendor-borrow", "lendor-repay"):
             continue
 
+        amt = to_f(cf.get("amount"))
+        if amt is None:
+            continue
+        amt = float(amt)
 
-        # 1) まずUSD直を拾う
-        v = to_f(cf.get("amount_usd"))
-        if v is None: v = to_f(cf.get("usd"))
-        if v is None: v = to_f(cf.get("value_usd"))
-        if v is None: v = to_f(cf.get("valueUsd"))
+        token = cf.get("token") or {}
+        addr = _lower((token.get("address") if isinstance(token, dict) else None))
+        prices = cf.get("prices") or {}
 
-        # 2) USD直が無いなら amount/token_id/decimals/price から作る
-        if v is None:
-            raw_amt = cf.get("amount")
-            token_id = cf.get("token_id") or cf.get("token") or cf.get("token_address")
-            dec = cf.get("token_decimals")
+        price_usd = None
+        if addr and t0 and addr == t0:
+            price_usd = to_f(((prices.get("token0") or {}) if isinstance(prices, dict) else {}).get("usd"))
+        elif addr and t1 and addr == t1:
+            price_usd = to_f(((prices.get("token1") or {}) if isinstance(prices, dict) else {}).get("usd"))
 
-            amt_f = None
-            try:
-                if raw_amt is not None:
-                    amt_f = float(raw_amt)
-            except:
-                amt_f = None
-
-            dec_i = None
-            try:
-                if dec is not None:
-                    dec_i = int(dec)
-            except:
-                dec_i = None
-
-            p = _price_usd(token_id)
-            if amt_f is not None and dec_i is not None and p is not None:
-                v = abs(amt_f) / (10 ** dec_i) * float(p)
-
-        if v is None:
-            # ここに入るなら、まだ形が違うのでDBG必要
-            # print("DBG borrow/repay cf no-usd:", cf, flush=True)
+        # price_usd が取れないなら諦めてスキップ（total_debt優先のため）
+        if price_usd is None:
             continue
 
-        v = abs(float(v))
+        v = abs(amt * float(price_usd))
 
         if t == "lendor-borrow":
             borrow_usd += v
-        else:
+        elif t == "lendor-repay":
             repay_usd += v
 
     debt = borrow_usd - repay_usd
-    if debt < 0:
-        debt = 0.0
-
-    return debt
+    return debt if debt > 0 else 0.0
 
 
 
