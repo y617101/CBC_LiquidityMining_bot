@@ -468,13 +468,57 @@ def main():
         # Uncollected (token amounts)
         u0 = pos.get("uncollected_fees0")
         u1 = pos.get("uncollected_fees1")
-        sym0 = get_symbol(pos.get("token0"))
-        sym1 = get_symbol(pos.get("token1"))
+        sym0 = resolve_symbol(pos, "token0")
+        sym1 = resolve_symbol(pos, "token1")
+
         if sym0 == "TOKEN" or sym1 == "TOKEN":
             toks = pos.get("tokens") or []
             if isinstance(toks, list) and len(toks) >= 2:
         sym0 = sym0 if sym0 != "TOKEN" else get_symbol(toks[0])
         sym1 = sym1 if sym1 != "TOKEN" else get_symbol(toks[1])
+        # --- token symbol fallback (Base) ---
+        ADDRESS_SYMBOL_MAP = {
+            "0x4200000000000000000000000000000000000006": "WETH",  # Base WETH
+            "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": "USDC",  # Base USDC
+}
+
+def resolve_symbol(pos, which: str):
+    """
+    which: 'token0' or 'token1'
+    優先順:
+      1) token0/token1 が dict で symbol を持つ
+      2) tokens が dict/list で symbol を持つ
+      3) token0/token1 が address 文字列なら ADDRESS_SYMBOL_MAP
+      4) fallback = TOKEN
+    """
+    v = pos.get(which)
+
+    # 1) dict
+    if isinstance(v, dict):
+        return v.get("symbol") or v.get("ticker") or v.get("name") or "TOKEN"
+
+    # 2) tokens (list/dict)
+    toks = pos.get("tokens")
+    if isinstance(toks, list) and len(toks) >= 2:
+        idx = 0 if which == "token0" else 1
+        if isinstance(toks[idx], dict):
+            s = toks[idx].get("symbol") or toks[idx].get("ticker") or toks[idx].get("name")
+            if s:
+                return s
+    if isinstance(toks, dict):
+        # たまに {"token0": {...}, "token1": {...}} 形式もある
+        t = toks.get(which)
+        if isinstance(t, dict):
+            s = t.get("symbol") or t.get("ticker") or t.get("name")
+            if s:
+                return s
+
+    # 3) address string
+    if isinstance(v, str) and v.startswith("0x"):
+        return ADDRESS_SYMBOL_MAP.get(v.lower(), "TOKEN")
+
+    return "TOKEN"
+
 
 
 
@@ -487,7 +531,7 @@ def main():
             ((pos.get("performance") or {}).get("hodl") or {}).get("fee_apr")
         )
 
-        nft_lines.append(
+        nft_lines.append
             f"\nNFT {nft_id}\n"
             f"Status: {status}\n"
             f"Net: {fmt_money(net)}\n"
