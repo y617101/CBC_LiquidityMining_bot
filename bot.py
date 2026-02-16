@@ -514,65 +514,6 @@ def main():
             print("DBG token1 raw:", pos.get("token1"), flush=True)
             print("DBG tokens raw:", pos.get("tokens"), flush=True)
             os.environ["DBG_TOKEN_SHAPE_PRINTED"] = "1"
-        
-
-
-
-    """
-    def _norm_addr(a):
-        return str(a or "").strip().lower()
-
-    def _from_map(addr):
-        addr = _norm_addr(addr)
-        return ADDRESS_SYMBOL_MAP.get(addr)
-
-    v = pos.get(which)
-
-    # 1) dict 直
-    if isinstance(v, dict):
-        s = v.get("symbol") or v.get("ticker") or v.get("name")
-        if s:
-            return str(s)
-        # dict内 address 系
-        for k in ("address", "token", "token_address", "tokenAddress", "id", "token_id", "tokenId"):
-            m = _from_map(v.get(k))
-            if m:
-                return m
-
-    # 2) tokens(list/dict) 側
-    toks = pos.get("tokens")
-    if isinstance(toks, list) and len(toks) >= 2:
-        idx = 0 if which == "token0" else 1
-        t = toks[idx]
-        if isinstance(t, dict):
-            s = t.get("symbol") or t.get("ticker") or t.get("name")
-            if s:
-                return str(s)
-            for k in ("address", "token", "token_address", "tokenAddress", "id", "token_id", "tokenId"):
-                m = _from_map(t.get(k))
-                if m:
-                    return m
-
-    if isinstance(toks, dict):
-        t = toks.get(which)
-        if isinstance(t, dict):
-            s = t.get("symbol") or t.get("ticker") or t.get("name")
-            if s:
-                return str(s)
-            for k in ("address", "token", "token_address", "tokenAddress", "id", "token_id", "tokenId"):
-                m = _from_map(t.get(k))
-                if m:
-                    return m
-
-    # 3) v が address文字列の可能性
-    m = _from_map(v)
-    if m:
-        return m
-
-    return "TOKEN"
-
-
-
 
 
 
