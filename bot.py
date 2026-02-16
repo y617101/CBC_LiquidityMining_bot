@@ -238,7 +238,6 @@ def calc_net_usd(pos):
     net = pooled_usd - debt_usd
 
     if not os.environ.get("DBG_NET_FINAL"):
-        print("DBG NET pooled_usd:", pooled_usd, "debt_usd:", debt_usd, "net:", net, flush=True)
         os.environ["DBG_NET_FINAL"] = "1"
 
     return net
@@ -394,8 +393,6 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
             fee_by_nft[nft_id] = fee_by_nft.get(nft_id, 0.0) + amt_usd
             count_by_nft[nft_id] = count_by_nft.get(nft_id, 0) + 1
 
-    print("DBG all cash_flow types (seen):", sorted(dbg_types), flush=True)
-    print("DBG fee-like count(24h):", total_count, flush=True)
 
     return total, total_count, fee_by_nft, count_by_nft, start_dt, end_dt
 
@@ -437,7 +434,6 @@ def resolve_symbol(pos, which):
 
 
 def main():
-    print("=== BOT START (PRINT) ===", flush=True)
 
     safe = os.environ.get("SAFE_ADDRESS", "SAFE_NOT_SET")
     if safe == "SAFE_NOT_SET":
@@ -451,10 +447,7 @@ def main():
     # --- DBG: xp-operationsの中身を1件だけ見る ---
     try:
         xp_list = _as_list(xp_ops)
-        print("DBG xp_list len:", len(xp_list), flush=True)
         if xp_list:
-            print("DBG xp sample keys:", list(xp_list[0].keys()), flush=True)
-            print("DBG xp sample:", str(xp_list[0])[:1500], flush=True)
     except Exception as e:
         print("DBG xp parse error:", e, flush=True)
 
@@ -481,8 +474,6 @@ def main():
 
     test_now = datetime.now(JST)
     fee_usd, fee_count, fee_by_nft, count_by_nft, start_dt, end_dt = calc_fee_usd_24h_from_cash_flows(pos_list_all, test_now)
-    print("DBG fee_by_nft keys:", list(fee_by_nft.keys()), flush=True)
-
 
 
     # --- NFT blocks (active only) ---
@@ -492,12 +483,7 @@ def main():
 
     for pos in (pos_list_open if isinstance(pos_list_open, list) else []):
         nft_id = str(pos.get("nft_id", "UNKNOWN"))
-        # --- DEBUG: pos keys を1回だけ出す ---
-        if not os.environ.get("DBG_POS_KEYS_PRINTED"):
-            print("DBG pos keys:", list(pos.keys()), flush=True)
-            print("DBG pos sample:", str(pos)[:1200], flush=True)
-            os.environ["DBG_POS_KEYS_PRINTED"] = "1"
-# --- /DEBUG ---
+
 
         in_range = pos.get("in_range")
         status = "ACTIVE"
@@ -507,10 +493,8 @@ def main():
         # Net (USD)
         net = calc_net_usd(pos)
         if not os.environ.get("DBG_NET_ONCE"):
-            print("DBG pooled_usd/repay_usd test pos keys:", list(pos.keys()), flush=True)
             os.environ["DBG_NET_ONCE"] = "1"
 
-        print(f"DBG ADD NET nft={nft_id} net={net}", flush=True)
         if net is not None:
             net_total += float(net)
 
@@ -539,11 +523,6 @@ def main():
 
         
         # ここに入れる（sym0/sym1 の直前）
-        if not os.environ.get("DBG_TOKEN_SHAPE_PRINTED"):
-            print("DBG token0 raw:", pos.get("token0"), flush=True)
-            print("DBG token1 raw:", pos.get("token1"), flush=True)
-            print("DBG tokens raw:", pos.get("tokens"), flush=True)
-            os.environ["DBG_TOKEN_SHAPE_PRINTED"] = "1"
 
 
 
@@ -566,7 +545,7 @@ def main():
 
 
     safe_fee_apr = calc_fee_apr_a(fee_usd, net_total)
-    print("DBG SAFE APR:", fee_usd, net_total, safe_fee_apr, flush=True)
+   
 
     report = (
         "CBC Liquidity Mining — Daily\n"
