@@ -458,6 +458,9 @@ def main():
         net = calc_net_usd(pos)
         if net is not None:
             net_total += net
+        
+        fee_usd_nft = fee_by_nft.get(str(nft_id), 0.0)
+        fee_apr = calc_fee_apr_a(fee_usd_nft, net)
 
 
 
