@@ -517,8 +517,10 @@ def main():
             print("DBG pooled_usd/repay_usd test pos keys:", list(pos.keys()), flush=True)
             os.environ["DBG_NET_ONCE"] = "1"
 
+        print(f"DBG ADD NET nft={nft_id} net={net}", flush=True)
         if net is not None:
-            net_total += net
+            net_total += float(net)
+
         
         # Fee APR（A方式）
         fee_usd_nft = fee_by_nft.get(str(nft_id), 0.0)
