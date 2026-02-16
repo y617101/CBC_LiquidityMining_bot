@@ -518,14 +518,6 @@ def main():
 
 
 
-
-    which: 'token0' or 'token1'
-    優先順:
-      1) pos[token0/token1] が dict で symbol/ticker/name
-      2) pos[token0/token1] が dict で address/token_id/id を ADDRESS_SYMBOL_MAP で解決
-      3) pos["tokens"] が list/dict で symbol or address を解決
-      4) pos[token0/token1] が address文字列なら ADDRESS_SYMBOL_MAP
-      5) fallback = TOKEN
     """
     def _norm_addr(a):
         return str(a or "").strip().lower()
