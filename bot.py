@@ -254,8 +254,15 @@ def calc_net_usd(pos):
     if repay_usd is None:
         repay_usd = 0.0
 
-    net_usd = pooled_usd - (repay_usd or 0.0)
-    return net_usd
+        net_usd = pooled_usd - (repay_usd or 0.0)
+        if not os.environ.get("DBG_NET_ONCE"):
+            print("DBG pooled_usd:", pooled_usd, flush=True)
+            print("DBG repay_usd :", repay_usd, flush=True)
+            print("DBG net_usd   :", net_usd, flush=True)
+            os.environ["DBG_NET_ONCE"] = "1"
+
+        return net_usd
+
 
 
 
