@@ -468,8 +468,18 @@ def main():
         # Uncollected (token amounts)
         u0 = pos.get("uncollected_fees0")
         u1 = pos.get("uncollected_fees1")
-        sym0 = resolve_symbol(pos, "token0")
-        sym1 = resolve_symbol(pos, "token1")
+        
+        # ここに入れる（sym0/sym1 の直前）
+        if not os.environ.get("DBG_TOKEN_SHAPE_PRINTED"):
+            print("DBG token0 raw:", pos.get("token0"), flush=True)
+            print("DBG token1 raw:", pos.get("token1"), flush=True)
+            print("DBG tokens raw:", pos.get("tokens"), flush=True)
+            os.environ["DBG_TOKEN_SHAPE_PRINTED"] = "1"
+        
+        # その次に sym0/sym1
+        sym0 = get_symbol(pos.get("token0"))
+        sym1 = get_symbol(pos.get("token1"))
+
 
         if sym0 == "TOKEN" or sym1 == "TOKEN":
             toks = pos.get("tokens") or []
@@ -481,43 +491,74 @@ def main():
             "0x4200000000000000000000000000000000000006": "WETH",  # Base WETH
             "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": "USDC",  # Base USDC
 }
+        ADDRESS_SYMBOL_MAP = {
+            # Base
+            "0x4200000000000000000000000000000000000006": "WETH",
+            "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": "USDC",
+        }
 
-def resolve_symbol(pos, which: str):
+def resolve_symbol(pos, which: str) -> str:
     """
     which: 'token0' or 'token1'
     優先順:
-      1) token0/token1 が dict で symbol を持つ
-      2) tokens が dict/list で symbol を持つ
-      3) token0/token1 が address 文字列なら ADDRESS_SYMBOL_MAP
-      4) fallback = TOKEN
+      1) pos[token0/token1] が dict で symbol/ticker/name
+      2) pos[token0/token1] が dict で address/token_id/id を ADDRESS_SYMBOL_MAP で解決
+      3) pos["tokens"] が list/dict で symbol or address を解決
+      4) pos[token0/token1] が address文字列なら ADDRESS_SYMBOL_MAP
+      5) fallback = TOKEN
     """
+    def _norm_addr(a):
+        return str(a or "").strip().lower()
+
+    def _from_map(addr):
+        addr = _norm_addr(addr)
+        return ADDRESS_SYMBOL_MAP.get(addr)
+
     v = pos.get(which)
 
-    # 1) dict
+    # 1) dict 直
     if isinstance(v, dict):
-        return v.get("symbol") or v.get("ticker") or v.get("name") or "TOKEN"
+        s = v.get("symbol") or v.get("ticker") or v.get("name")
+        if s:
+            return str(s)
+        # dict内 address 系
+        for k in ("address", "token", "token_address", "tokenAddress", "id", "token_id", "tokenId"):
+            m = _from_map(v.get(k))
+            if m:
+                return m
 
-    # 2) tokens (list/dict)
+    # 2) tokens(list/dict) 側
     toks = pos.get("tokens")
     if isinstance(toks, list) and len(toks) >= 2:
         idx = 0 if which == "token0" else 1
-        if isinstance(toks[idx], dict):
-            s = toks[idx].get("symbol") or toks[idx].get("ticker") or toks[idx].get("name")
+        t = toks[idx]
+        if isinstance(t, dict):
+            s = t.get("symbol") or t.get("ticker") or t.get("name")
             if s:
-                return s
+                return str(s)
+            for k in ("address", "token", "token_address", "tokenAddress", "id", "token_id", "tokenId"):
+                m = _from_map(t.get(k))
+                if m:
+                    return m
+
     if isinstance(toks, dict):
-        # たまに {"token0": {...}, "token1": {...}} 形式もある
         t = toks.get(which)
         if isinstance(t, dict):
             s = t.get("symbol") or t.get("ticker") or t.get("name")
             if s:
-                return s
+                return str(s)
+            for k in ("address", "token", "token_address", "tokenAddress", "id", "token_id", "tokenId"):
+                m = _from_map(t.get(k))
+                if m:
+                    return m
 
-    # 3) address string
-    if isinstance(v, str) and v.startswith("0x"):
-        return ADDRESS_SYMBOL_MAP.get(v.lower(), "TOKEN")
+    # 3) v が address文字列の可能性
+    m = _from_map(v)
+    if m:
+        return m
 
     return "TOKEN"
+
 
 
 
