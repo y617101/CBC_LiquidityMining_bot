@@ -236,7 +236,7 @@ def calc_net_usd(pos):
     if repay_usd is None:
         repay_usd = extract_repay_usd_from_cash_flows(pos)
 
-    return pooled_usd - repay_usd
+    return pooled_usd
 
 
 def calc_fee_apr_a(fee_24h_usd, net_usd):
@@ -244,6 +244,9 @@ def calc_fee_apr_a(fee_24h_usd, net_usd):
         return None
     return (fee_24h_usd / net_usd) * 365 * 100
 def extract_repay_usd_from_cash_flows(pos):
+    # REPAYは今は表示しない＆集計にも使わない（常に0）
+    return 0.0
+
     """
     positions API に amount_to_repay が無い場合の代替:
     cash_flows の type == 'lendor-borrow' から USD を拾う（最新を優先）
@@ -449,9 +452,6 @@ def main():
         if net is not None:
             net_total += net
 
-        repay_dbg = to_f(pos.get("amount_to_repay"))
-        if repay_dbg is None:
-            repay_dbg = extract_repay_usd_from_cash_flows(pos)
 
 
         # Uncollected (USD)
@@ -471,7 +471,6 @@ def main():
             f"\nNFT {nft_id}\n"
             f"Status: {status}\n"
             f"Net: {fmt_money(net)}\n"
-            f"Repay(est): {fmt_money(repay_dbg)}\n"
             f"Uncollected: {fees_value:.2f} USD\n"
             f"Uncollected Fees: {to_f(u0, 0.0):.8f} {sym0} / {to_f(u1, 0.0):.6f} {sym1}\n"
             f"Fee APR: {fmt_pct(fee_apr)}\n"
