@@ -225,13 +225,12 @@ def get_symbol(tok):
 
 def calc_net_usd(pos):
     """
-    Net（借入差引後・positions API対応版）
+    Net（借入差引後）
     Net = pooled assets USD - repay_usd
 
     pooled assets USD = current_amount0 * pool_price + current_amount1
-    repay_usd は amount_to_repay が無いので cash_flows から推定
+    repay_usd = pos["amount_to_repay"] があればそれ、無ければ cash_flows から推定
     """
-
     price = to_f(pos.get("pool_price"))
     a0 = to_f(pos.get("current_amount0"))
     a1 = to_f(pos.get("current_amount1"))
@@ -245,7 +244,12 @@ def calc_net_usd(pos):
     if repay_usd is None:
         repay_usd = extract_repay_usd_from_cash_flows(pos)
 
-    return pooled_usd
+    # 念のため
+    if repay_usd is None:
+        repay_usd = 0.0
+
+    net_usd = pooled_usd - repay_usd
+    return net_usd
 
 
 def calc_fee_apr_a(fee_24h_usd, net_usd):
