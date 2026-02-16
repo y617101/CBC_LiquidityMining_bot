@@ -225,28 +225,24 @@ def get_symbol(tok):
 
 def calc_net_usd(pos):
     """
-    Net = underlying_value - debt
-    REVERTの underlying_value を基準にする（最も正確）
+    Net = underlying_value - debt(推定)
     """
-
     pooled_usd = to_f(pos.get("underlying_value"))
     if pooled_usd is None:
         return None
 
-    repay_usd = extract_repay_usd_from_cash_flows(pos)
-    if repay_usd is None:
-        repay_usd = 0.0
+    debt_usd = extract_repay_usd_from_cash_flows(pos)
+    if debt_usd is None:
+        debt_usd = 0.0
 
-    net = pooled_usd - repay_usd
+    net = pooled_usd - debt_usd
 
     if not os.environ.get("DBG_NET_FINAL"):
-        print("DBG NET pooled:", pooled_usd,
-              "debt:", repay_usd,
-              "net:", net,
-              flush=True)
+        print("DBG NET pooled_usd:", pooled_usd, "debt_usd:", debt_usd, "net:", net, flush=True)
         os.environ["DBG_NET_FINAL"] = "1"
 
     return net
+
 
 
 
@@ -260,43 +256,12 @@ def calc_fee_apr_a(fee_24h_usd, net_usd):
 def extract_repay_usd_from_cash_flows(pos):
     """
     借入残高（USD）を cash_flows から推定する
-    優先：total_debt（あればそれが残高）
-    予備：sum(lendor-borrow) - sum(lendor-repay)（USD換算できる場合）
+    残高 = sum(lendor-borrow) - sum(lendor-repay)
+    ※ cash_flows に amount_usd が無い時は amount × prices.usd で推定する
     """
     cfs = pos.get("cash_flows") or []
     if not isinstance(cfs, list):
         return 0.0
-
-    # --- ① total_debt を最優先で拾う（最も確実） ---
-    best_ts = None
-    best_debt = None
-    for cf in cfs:
-        if not isinstance(cf, dict):
-            continue
-        t = _lower(cf.get("type"))
-        if t not in ("lendor-borrow", "lendor-repay"):
-            continue
-
-        d = to_f(cf.get("total_debt"))
-        if d is None:
-            continue
-
-        ts = cf.get("timestamp") or cf.get("ts")
-        ts = _to_ts_sec(ts)  # あなたの既存ヘルパーがある前提
-        if ts is None:
-            ts = 0
-
-        if best_ts is None or ts >= best_ts:
-            best_ts = ts
-            best_debt = abs(float(d))
-
-    if best_debt is not None:
-        return best_debt
-
-    # --- ② 予備：借入−返済（USD換算できる時だけ） ---
-    # token0/token1 アドレスを pos から取る（ログ上、文字列で入ってる）
-    t0 = _lower(pos.get("token0"))
-    t1 = _lower(pos.get("token1"))
 
     borrow_usd = 0.0
     repay_usd = 0.0
@@ -309,34 +274,46 @@ def extract_repay_usd_from_cash_flows(pos):
         if t not in ("lendor-borrow", "lendor-repay"):
             continue
 
-        amt = to_f(cf.get("amount"))
-        if amt is None:
+        # 1) まずUSD直を拾う
+        v = to_f(cf.get("amount_usd"))
+        if v is None: v = to_f(cf.get("usd"))
+        if v is None: v = to_f(cf.get("value_usd"))
+        if v is None: v = to_f(cf.get("valueUsd"))
+        if v is None: v = to_f(cf.get("amountUsd"))
+
+        # 2) USD直が無いなら amount × price(usd) で作る
+        if v is None:
+            amt = to_f(cf.get("amount"))
+            prices = cf.get("prices") or {}
+            p = to_f((prices.get("token0") or {}).get("usd"))
+            if p is None:
+                p = to_f((prices.get("token1") or {}).get("usd"))
+            if p is None:
+                p = to_f((prices.get("native_token") or {}).get("usd"))
+
+            if amt is not None and p is not None:
+                v = abs(float(amt)) * float(p)
+
+        if v is None:
             continue
-        amt = float(amt)
 
-        token = cf.get("token") or {}
-        addr = _lower((token.get("address") if isinstance(token, dict) else None))
-        prices = cf.get("prices") or {}
-
-        price_usd = None
-        if addr and t0 and addr == t0:
-            price_usd = to_f(((prices.get("token0") or {}) if isinstance(prices, dict) else {}).get("usd"))
-        elif addr and t1 and addr == t1:
-            price_usd = to_f(((prices.get("token1") or {}) if isinstance(prices, dict) else {}).get("usd"))
-
-        # price_usd が取れないなら諦めてスキップ（total_debt優先のため）
-        if price_usd is None:
-            continue
-
-        v = abs(amt * float(price_usd))
+        v = abs(float(v))
 
         if t == "lendor-borrow":
             borrow_usd += v
-        elif t == "lendor-repay":
+        else:
             repay_usd += v
 
     debt = borrow_usd - repay_usd
-    return debt if debt > 0 else 0.0
+    if debt < 0:
+        debt = 0.0
+
+    if not os.environ.get("DBG_DEBT_ONCE"):
+        print("DBG DEBT borrow_usd:", borrow_usd, "repay_usd:", repay_usd, "debt:", debt, flush=True)
+        os.environ["DBG_DEBT_ONCE"] = "1"
+
+    return debt
+
 
 
 
