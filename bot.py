@@ -265,14 +265,14 @@ def calc_fee_apr_a(fee_24h_usd, net_usd):
     return (fee_24h_usd / net_usd) * 365 * 100
 
 def extract_repay_usd_from_cash_flows(pos):
-    """
-    positions API に amount_to_repay が無い場合の代替:
-    cash_flows の type == 'lendor-borrow' から USD を拾う（最新を優先）
-    ※ window判定なし（Repayは期間で切らない）
-    """
     cfs = pos.get("cash_flows") or []
+    if not isinstance(cfs, list):
+        return 0.0
 
-    # typesを1回だけ出す（デバッグ）
+    borrowed = 0.0
+    repaid = 0.0
+
+    # 1回だけtype一覧を出す（残すと便利）
     if not os.environ.get("DBG_CF_TYPES_PRINTED"):
         types = []
         for cf in cfs:
@@ -281,41 +281,30 @@ def extract_repay_usd_from_cash_flows(pos):
         print("DBG cash_flow types:", sorted(set([t for t in types if t])), flush=True)
         os.environ["DBG_CF_TYPES_PRINTED"] = "1"
 
-    best_ts = None
-    best_val = None
-
     for cf in cfs:
         if not isinstance(cf, dict):
             continue
 
         t = _lower(cf.get("type"))
 
-        # ✅ 借入系だけ見る
-        if t != "lendor-borrow":
-            continue
-
-        ts = _to_ts_sec(cf.get("timestamp"))
-        if ts is None:
-            continue
-
-        # USD値（候補を順に拾う）
+        # USD 値候補
         v = to_f(cf.get("amount_usd"))
-        if v is None:
-            v = to_f(cf.get("usd"))
-        if v is None:
-            v = to_f(cf.get("value_usd"))
-        if v is None:
-            v = to_f(cf.get("valueUsd"))
+        if v is None: v = to_f(cf.get("usd"))
+        if v is None: v = to_f(cf.get("value_usd"))
+        if v is None: v = to_f(cf.get("valueUsd"))
         if v is None:
             continue
 
-        # 最新timestampを優先
-        if best_ts is None or ts > best_ts:
-            best_ts = ts
-            best_val = v
+        # 借入/返済っぽいtypeを広めに拾う
+        # ※ここはDBG types見てあとで絞れる
+        if any(k in t for k in ("borrow", "lend")) and not any(k in t for k in ("repay", "payback", "return")):
+            borrowed += abs(v)
+        if any(k in t for k in ("repay", "payback", "return")):
+            repaid += abs(v)
 
-    # 借入系は符号がマイナスのことがあるので絶対値
-    return abs(best_val) if best_val is not None else 0.0
+    outstanding = borrowed - repaid
+    return outstanding if outstanding > 0 else 0.0
+
 
 def _lower(s):
     return str(s or "").strip().lower()
