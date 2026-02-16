@@ -468,11 +468,9 @@ def main():
         # Uncollected (token amounts)
         u0 = pos.get("uncollected_fees0")
         u1 = pos.get("uncollected_fees1")
-        token0 = pos.get("token0") or {}
-        token1 = pos.get("token1") or {}
-        
-        sym0 = token0.get("symbol") if isinstance(token0, dict) else get_symbol(token0)
-        sym1 = token1.get("symbol") if isinstance(token1, dict) else get_symbol(token1)
+        sym0 = get_symbol(pos.get("token0"))
+        sym1 = get_symbol(pos.get("token1"))
+
 
 
         # Fee APR（A方式）: 現時点はNFT別に確定手数料を安全に紐づけできない可能性があるため N/A
