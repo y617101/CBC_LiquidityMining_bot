@@ -471,7 +471,9 @@ def main():
         sym1 = get_symbol(pos.get("token1"))
 
         # Fee APR（A方式）: 現時点はNFT別に確定手数料を安全に紐づけできない可能性があるため N/A
-        fee_apr = None
+        fee_usd_nft = fee_by_nft.get(nft_id, 0.0)
+        fee_apr = calc_fee_apr_a(fee_usd_nft, net)
+
 
         nft_lines.append(
             f"\nNFT {nft_id}\n"
