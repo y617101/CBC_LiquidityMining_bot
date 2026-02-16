@@ -31,9 +31,9 @@ def send_telegram(text):
     )
     print("Telegram status:", r.status_code, flush=True)
     print("Telegram response body:", r.text, flush=True)
-    r.raise_for_status()
-
-    r.raise_for_status()
+    
+    if r.status_code != 200:
+        return
 
 
 
