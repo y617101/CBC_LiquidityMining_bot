@@ -501,6 +501,10 @@ def main():
 
         # Net (USD)
         net = calc_net_usd(pos)
+        if not os.environ.get("DBG_NET_ONCE"):
+            print("DBG pooled_usd/repay_usd test pos keys:", list(pos.keys()), flush=True)
+            os.environ["DBG_NET_ONCE"] = "1"
+
         if net is not None:
             net_total += net
         
