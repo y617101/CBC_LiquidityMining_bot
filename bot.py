@@ -469,6 +469,10 @@ def main():
         u0 = pos.get("uncollected_fees0")
         u1 = pos.get("uncollected_fees1")
         
+        sym0 = resolve_symbol(pos, "token0")
+        sym1 = resolve_symbol(pos, "token1")
+
+        
         # ここに入れる（sym0/sym1 の直前）
         if not os.environ.get("DBG_TOKEN_SHAPE_PRINTED"):
             print("DBG token0 raw:", pos.get("token0"), flush=True)
@@ -573,7 +577,7 @@ def resolve_symbol(pos, which: str) -> str:
             ((pos.get("performance") or {}).get("hodl") or {}).get("fee_apr")
         )
 
-        nft_lines.append
+        nft_lines.append(
             f"\nNFT {nft_id}\n"
             f"Status: {status}\n"
             f"Net: {fmt_money(net)}\n"
@@ -582,8 +586,8 @@ def resolve_symbol(pos, which: str) -> str:
             f"{to_f(u0, 0.0):.8f} {sym0}\n"
             f"{to_f(u1, 0.0):.6f} {sym1}\n"
             f"Fee APR: {fmt_pct(fee_apr_ui)}\n"
-
         )
+
 
     safe_fee_apr = calc_fee_apr_a(fee_usd, net_total)
     print("DBG SAFE APR:", fee_usd, net_total, safe_fee_apr, flush=True)
