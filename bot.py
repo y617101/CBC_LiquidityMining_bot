@@ -254,7 +254,9 @@ def calc_net_usd(pos):
     if repay_usd is None:
         repay_usd = 0.0
 
-    return pooled_usd - (repay_usd or 0.0)
+    net_usd = pooled_usd - (repay_usd or 0.0)
+    return net_usd
+
 
     return net_usd
 
