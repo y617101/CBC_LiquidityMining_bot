@@ -224,31 +224,38 @@ def get_symbol(tok):
     return "TOKEN"
 
 def calc_net_usd(pos):
-    """
-    Net（借入差引後）
-    Net = pooled assets USD - repay_usd
-
-    pooled assets USD = current_amount0 * pool_price + current_amount1
-    repay_usd = pos["amount_to_repay"] があればそれ、無ければ cash_flows から推定
-    """
     price = to_f(pos.get("pool_price"))
     a0 = to_f(pos.get("current_amount0"))
     a1 = to_f(pos.get("current_amount1"))
-
     if price is None or a0 is None or a1 is None:
         return None
 
     pooled_usd = a0 * price + a1
 
-    repay_usd = to_f(pos.get("amount_to_repay"))
+    # まずは positions の「借入残高」っぽいキーを総当たり
+    repay_usd = None
+    for k in (
+        "amount_to_repay", "amountToRepay",
+        "amount_to_repay_usd", "amountToRepayUsd",
+        "repay_usd", "repayUsd",
+        "debt_usd", "debtUsd",
+        "borrow_usd", "borrowUsd",
+        "borrowed_usd", "borrowedUsd",
+    ):
+        v = to_f(pos.get(k))
+        if v is not None:
+            repay_usd = v
+            break
+
+    # 無ければ cash_flows から推定（借入−返済）
     if repay_usd is None:
         repay_usd = extract_repay_usd_from_cash_flows(pos)
 
-    # 念のため
     if repay_usd is None:
         repay_usd = 0.0
 
-    net_usd = pooled_usd - repay_usd
+    return pooled_usd - repay_usd
+
     return net_usd
 
 
