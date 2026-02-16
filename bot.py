@@ -576,8 +576,6 @@ def resolve_symbol(pos, which: str) -> str:
 
 
         # Fee APR（A方式）: 現時点はNFT別に確定手数料を安全に紐づけできない可能性があるため N/A
-        fee_usd_nft = fee_by_nft.get(str(nft_id), 0.0)
-        fee_apr = calc_fee_apr_a(fee_usd_nft, net)
 
         fee_apr_ui = to_f(
             ((pos.get("performance") or {}).get("hodl") or {}).get("fee_apr")
