@@ -319,6 +319,12 @@ def resolve_symbol(pos, which):
 
 
 def main():
+    mode = (os.environ.get("REPORT_MODE") or "").upper()
+
+    if mode == "WEEKLY":
+        send_telegram("WEEKLY TEST OK 🌸")
+        return
+
 
     safe = os.environ.get("SAFE_ADDRESS", "SAFE_NOT_SET")
     if safe == "SAFE_NOT_SET":
