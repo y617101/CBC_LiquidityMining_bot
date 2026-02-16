@@ -515,9 +515,6 @@ def main():
             print("DBG tokens raw:", pos.get("tokens"), flush=True)
             os.environ["DBG_TOKEN_SHAPE_PRINTED"] = "1"
         
-        # その次に sym0/sym1
-        sym0 = resolve_symbol(pos, "token0")
-        sym1 = resolve_symbol(pos, "token1")
 
 
 
