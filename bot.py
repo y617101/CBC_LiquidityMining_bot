@@ -267,21 +267,16 @@ def calc_fee_apr_a(fee_24h_usd, net_usd):
     return (fee_24h_usd / net_usd) * 365 * 100
 
 def extract_repay_usd_from_cash_flows(pos):
+    """
+    借入残高（USD）を cash_flows から推定する
+    残高 = sum(lendor-borrow) - sum(lendor-repay)
+    """
     cfs = pos.get("cash_flows") or []
     if not isinstance(cfs, list):
         return 0.0
 
-    borrowed = 0.0
-    repaid = 0.0
-
-    # 1回だけtype一覧を出す（残すと便利）
-    if not os.environ.get("DBG_CF_TYPES_PRINTED"):
-        types = []
-        for cf in cfs:
-            if isinstance(cf, dict):
-                types.append(_lower(cf.get("type")))
-        print("DBG cash_flow types:", sorted(set([t for t in types if t])), flush=True)
-        os.environ["DBG_CF_TYPES_PRINTED"] = "1"
+    borrow_usd = 0.0
+    repay_usd = 0.0
 
     for cf in cfs:
         if not isinstance(cf, dict):
@@ -289,23 +284,33 @@ def extract_repay_usd_from_cash_flows(pos):
 
         t = _lower(cf.get("type"))
 
-        # USD 値候補
+        # USD値（候補を順に拾う）
         v = to_f(cf.get("amount_usd"))
-        if v is None: v = to_f(cf.get("usd"))
-        if v is None: v = to_f(cf.get("value_usd"))
-        if v is None: v = to_f(cf.get("valueUsd"))
+        if v is None:
+            v = to_f(cf.get("usd"))
+        if v is None:
+            v = to_f(cf.get("value_usd"))
+        if v is None:
+            v = to_f(cf.get("valueUsd"))
         if v is None:
             continue
 
-        # 借入/返済っぽいtypeを広めに拾う
-        # ※ここはDBG types見てあとで絞れる
-        if any(k in t for k in ("borrow", "lend")) and not any(k in t for k in ("repay", "payback", "return")):
-            borrowed += abs(v)
-        if any(k in t for k in ("repay", "payback", "return")):
-            repaid += abs(v)
+        v = abs(float(v))
 
-    outstanding = borrowed - repaid
-    return outstanding if outstanding > 0 else 0.0
+        if t == "lendor-borrow":
+            borrow_usd += v
+        elif t == "lendor-repay":
+            repay_usd += v
+
+    debt = borrow_usd - repay_usd
+    if debt < 0:
+        debt = 0.0
+
+    # DBG（必要なら）
+    # print("DBG debt:", debt, "borrow:", borrow_usd, "repay:", repay_usd, flush=True)
+
+    return debt
+
 
 
 def _lower(s):
