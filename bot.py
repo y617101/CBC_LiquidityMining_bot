@@ -6,7 +6,8 @@ import requests
 # ================================
 ADDRESS_SYMBOL_MAP = {
     "0x4200000000000000000000000000000000000006": "WETH",
-    "0x833589fcd6edb6e08f4c7c32d4f71b54bd0a2913": "USDC",
+    "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": "USDC",
+
 }
 
 
@@ -394,21 +395,41 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
     return total, total_count, fee_by_nft, count_by_nft, start_dt, end_dt
 
 def resolve_symbol(pos, which):
+    # which: "token0" or "token1"
     v = pos.get(which)
 
+    # 1) まず pos[token0/token1] が dict の場合
     if isinstance(v, dict):
         s = v.get("symbol") or v.get("ticker") or v.get("name")
         if s:
             return s
-
-        addr = v.get("address")
+        addr = v.get("address") or v.get("token_address") or v.get("tokenAddress")
         if addr:
-            return ADDRESS_SYMBOL_MAP.get(str(addr).lower(), "TOKEN")
+            return ADDRESS_SYMBOL_MAP.get(str(addr).strip().lower(), "TOKEN")
 
+    # 2) pos[token0/token1] が address文字列の場合
     if isinstance(v, str):
-        return ADDRESS_SYMBOL_MAP.get(v.lower(), "TOKEN")
+        m = ADDRESS_SYMBOL_MAP.get(v.strip().lower())
+        if m:
+            return m
+
+    # 3) fallback: pos["tokens"] から拾う（list想定）
+    toks = pos.get("tokens")
+    if isinstance(toks, list) and len(toks) >= 2:
+        idx = 0 if which == "token0" else 1
+        t = toks[idx]
+        if isinstance(t, dict):
+            s = t.get("symbol") or t.get("ticker") or t.get("name")
+            if s:
+                return s
+            addr = t.get("address") or t.get("token_address") or t.get("tokenAddress")
+            if addr:
+                m = ADDRESS_SYMBOL_MAP.get(str(addr).strip().lower())
+                if m:
+                    return m
 
     return "TOKEN"
+
 
 def main():
     print("=== BOT START (PRINT) ===", flush=True)
