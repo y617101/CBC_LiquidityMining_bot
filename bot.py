@@ -325,7 +325,7 @@ def main():
     mode = os.getenv("REPORT_MODE", "DAILY").upper()
 
     if mode == "WEEKLY":
-        report = build_weekly_report()
+        report = build_daily_report()
     else:
         report = build_daily_report()
 
