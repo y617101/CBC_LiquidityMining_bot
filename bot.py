@@ -258,8 +258,6 @@ def calc_net_usd(pos):
     return net_usd
 
 
-    return net_usd
-
 
 def calc_fee_apr_a(fee_24h_usd, net_usd):
     if fee_24h_usd is None or net_usd is None or net_usd <= 0:
