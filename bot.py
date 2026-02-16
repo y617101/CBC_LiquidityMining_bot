@@ -333,7 +333,6 @@ def main():
 
 
 
-
     safe = os.environ.get("SAFE_ADDRESS", "SAFE_NOT_SET")
     if safe == "SAFE_NOT_SET":
         send_telegram("SAFE\nSAFE_NOT_SET\n\nSAFE_ADDRESS をRenderのEnvironment Variablesに入れてね")
