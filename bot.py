@@ -485,7 +485,8 @@ def main():
         )
 
     safe_fee_apr = calc_fee_apr_a(fee_usd, net_total)
-    
+    print("DBG SAFE APR:", fee_usd, net_total, safe_fee_apr, flush=True)
+
     report = (
         "CBC Liquidity Mining — Daily\n"
         f"Period End: {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
