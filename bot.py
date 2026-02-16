@@ -312,9 +312,14 @@ def extract_repay_usd_from_cash_flows(pos):
 
         t = _lower(cf.get("type"))
 
-        # 対象は借入/返済だけ
+        # 👇 これを追加
+        if t in ("lendor-borrow", "lendor-repay") and not os.environ.get("DBG_LENDOR_ONCE"):
+            print("DBG LENDOR sample:", str(cf)[:1500], flush=True)
+            os.environ["DBG_LENDOR_ONCE"] = "1"
+
         if t not in ("lendor-borrow", "lendor-repay"):
             continue
+
 
         # 1) まずUSD直を拾う
         v = to_f(cf.get("amount_usd"))
