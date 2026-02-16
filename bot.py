@@ -254,42 +254,57 @@ def calc_fee_apr_a(fee_24h_usd, net_usd):
     return (fee_24h_usd / net_usd) * 365 * 100
 
 def extract_repay_usd_from_cash_flows(pos):
-
     cfs = pos.get("cash_flows") or []
     if not isinstance(cfs, list):
         return 0.0
 
+    # 1) total_debt を最優先（最新timestampのもの）
+    latest = None
+    latest_ts = -1
+    for cf in cfs:
+        if not isinstance(cf, dict):
+            continue
+        t = _lower(cf.get("type"))
+        if t not in ("lendor-borrow", "lendor-repay"):
+            continue
+        td = to_f(cf.get("total_debt"))
+        ts = to_f(cf.get("timestamp")) or 0
+        if td is not None and ts >= latest_ts:
+            latest_ts = ts
+            latest = td
+
+    if latest is not None:
+        return max(float(latest), 0.0)
+
+    # 2) total_debt が無い場合のみ、borrows - repays をUSDで集計（USDフィールド優先）
     borrow_usd = 0.0
     repay_usd = 0.0
 
     for cf in cfs:
         if not isinstance(cf, dict):
             continue
-
         t = _lower(cf.get("type"))
-
         if t not in ("lendor-borrow", "lendor-repay"):
             continue
 
-        # 🔥 ここが最重要
-        v = to_f(cf.get("total_debt"))
+        v = to_f(cf.get("amount_usd"))
+        if v is None: v = to_f(cf.get("usd"))
+        if v is None: v = to_f(cf.get("value_usd"))
+        if v is None: v = to_f(cf.get("valueUsd"))
+        if v is None: v = to_f(cf.get("amountUsd"))
 
         if v is None:
-            continue
+            continue  # ← ここで “amount×price” に落ちない（壊れやすいので）
 
+        v = abs(float(v))
         if t == "lendor-borrow":
             borrow_usd += v
-        elif t == "lendor-repay":
+        else:
             repay_usd += v
 
     debt = borrow_usd - repay_usd
+    return debt if debt > 0 else 0.0
 
-    if debt < 0:
-        debt = 0.0
-
-    print("DBG DEBT borrow_usd:", borrow_usd, "repay_usd:", repay_usd, "debt:", debt, flush=True)
-
-    return debt
 
 
 
