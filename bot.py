@@ -488,9 +488,12 @@ def main():
 
         if sym0 == "TOKEN" or sym1 == "TOKEN":
             toks = pos.get("tokens") or []
-            if isinstance(toks, list) and len(toks) >= 2:
-        sym0 = sym0 if sym0 != "TOKEN" else get_symbol(toks[0])
-        sym1 = sym1 if sym1 != "TOKEN" else get_symbol(toks[1])
+        if isinstance(toks, list) and len(toks) >= 2:
+            if sym0 == "TOKEN":
+                sym0 = get_symbol(toks[0])
+            if sym1 == "TOKEN":
+                sym1 = get_symbol(toks[1])
+
         # --- token symbol fallback (Base) ---
         ADDRESS_SYMBOL_MAP = {
             "0x4200000000000000000000000000000000000006": "WETH",  # Base WETH
