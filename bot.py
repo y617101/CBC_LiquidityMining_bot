@@ -477,8 +477,9 @@ def main():
             os.environ["DBG_TOKEN_SHAPE_PRINTED"] = "1"
         
         # その次に sym0/sym1
-        sym0 = get_symbol(pos.get("token0"))
-        sym1 = get_symbol(pos.get("token1"))
+        sym0 = resolve_symbol(pos, "token0")
+        sym1 = resolve_symbol(pos, "token1")
+
 
 
         if sym0 == "TOKEN" or sym1 == "TOKEN":
