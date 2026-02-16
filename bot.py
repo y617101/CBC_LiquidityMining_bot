@@ -503,19 +503,7 @@ def main():
             if sym1 == "TOKEN":
                 sym1 = get_symbol(toks[1])
 
-        # --- token symbol fallback (Base) ---
-        ADDRESS_SYMBOL_MAP = {
-            "0x4200000000000000000000000000000000000006": "WETH",  # Base WETH
-            "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": "USDC",  # Base USDC
-}
-        ADDRESS_SYMBOL_MAP = {
-            # Base
-            "0x4200000000000000000000000000000000000006": "WETH",
-            "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": "USDC",
-        }
 
-def resolve_symbol(pos, which: str) -> str:
-    """
     which: 'token0' or 'token1'
     優先順:
       1) pos[token0/token1] が dict で symbol/ticker/name
