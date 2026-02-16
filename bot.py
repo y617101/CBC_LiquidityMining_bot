@@ -1,6 +1,16 @@
 import os
 import requests
-import json
+import datetime
+import ...
+
+# ================================
+# Token Symbol Map (Base)
+# ================================
+ADDRESS_SYMBOL_MAP = {
+    "0x4200000000000000000000000000000000000006": "WETH",
+    "0x833589fcd6edb6e08f4c7c32d4f71b54bd0a2913": "USDC",
+}
+
 
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
@@ -385,6 +395,22 @@ def calc_fee_usd_24h_from_cash_flows(pos_list_all, now_dt):
 
     return total, total_count, fee_by_nft, count_by_nft, start_dt, end_dt
 
+def resolve_symbol(pos, which):
+    v = pos.get(which)
+
+    if isinstance(v, dict):
+        s = v.get("symbol") or v.get("ticker") or v.get("name")
+        if s:
+            return s
+
+        addr = v.get("address")
+        if addr:
+            return ADDRESS_SYMBOL_MAP.get(str(addr).lower(), "TOKEN")
+
+    if isinstance(v, str):
+        return ADDRESS_SYMBOL_MAP.get(v.lower(), "TOKEN")
+
+    return "TOKEN"
 
 def main():
     print("=== BOT START (PRINT) ===", flush=True)
