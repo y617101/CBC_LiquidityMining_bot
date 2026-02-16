@@ -518,14 +518,6 @@ def main():
 
 
 
-        if sym0 == "TOKEN" or sym1 == "TOKEN":
-            toks = pos.get("tokens") or []
-        if isinstance(toks, list) and len(toks) >= 2:
-            if sym0 == "TOKEN":
-                sym0 = get_symbol(toks[0])
-            if sym1 == "TOKEN":
-                sym1 = get_symbol(toks[1])
-
 
     which: 'token0' or 'token1'
     優先順:
