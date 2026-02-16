@@ -431,7 +431,6 @@ def main():
 
     test_now = datetime.now(JST)
     fee_usd, fee_count, fee_by_nft, count_by_nft, start_dt, end_dt = calc_fee_usd_24h_from_cash_flows(pos_list_all, test_now)
-    safe_fee_apr = calc_fee_apr_a(fee_usd, net_total)
 
 
 
@@ -485,6 +484,8 @@ def main():
             f"Fee APR: {fmt_pct(fee_apr)}\n"
         )
 
+    safe_fee_apr = calc_fee_apr_a(fee_usd, net_total)
+    
     report = (
         "CBC Liquidity Mining — Daily\n"
         f"Period End: {end_dt.strftime('%Y-%m-%d %H:%M')} JST\n"
