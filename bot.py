@@ -224,44 +224,30 @@ def get_symbol(tok):
     return "TOKEN"
 
 def calc_net_usd(pos):
-    price = to_f(pos.get("pool_price"))
-    a0 = to_f(pos.get("current_amount0"))
-    a1 = to_f(pos.get("current_amount1"))
-    if price is None or a0 is None or a1 is None:
+    """
+    Net = underlying_value - debt
+    REVERTの underlying_value を基準にする（最も正確）
+    """
+
+    pooled_usd = to_f(pos.get("underlying_value"))
+    if pooled_usd is None:
         return None
 
-    pooled_usd = a0 * price + a1
-
-    # まずは positions の「借入残高」っぽいキーを総当たり
-    repay_usd = None
-    for k in (
-        "amount_to_repay", "amountToRepay",
-        "amount_to_repay_usd", "amountToRepayUsd",
-        "repay_usd", "repayUsd",
-        "debt_usd", "debtUsd",
-        "borrow_usd", "borrowUsd",
-        "borrowed_usd", "borrowedUsd",
-    ):
-        v = to_f(pos.get(k))
-        if v is not None:
-            repay_usd = v
-            break
-
-    # 無ければ cash_flows から推定（借入−返済）
-    if repay_usd is None:
-        repay_usd = extract_repay_usd_from_cash_flows(pos)
-
+    repay_usd = extract_repay_usd_from_cash_flows(pos)
     if repay_usd is None:
         repay_usd = 0.0
 
-        net_usd = pooled_usd - (repay_usd or 0.0)
-        if not os.environ.get("DBG_NET_ONCE"):
-            print("DBG pooled_usd:", pooled_usd, flush=True)
-            print("DBG repay_usd :", repay_usd, flush=True)
-            print("DBG net_usd   :", net_usd, flush=True)
-            os.environ["DBG_NET_ONCE"] = "1"
+    net = pooled_usd - repay_usd
 
-        return net_usd
+    if not os.environ.get("DBG_NET_FINAL"):
+        print("DBG NET pooled:", pooled_usd,
+              "debt:", repay_usd,
+              "net:", net,
+              flush=True)
+        os.environ["DBG_NET_FINAL"] = "1"
+
+    return net
+
 
 
 
