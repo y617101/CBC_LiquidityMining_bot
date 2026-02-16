@@ -431,6 +431,7 @@ def main():
 
     test_now = datetime.now(JST)
     fee_usd, fee_count, fee_by_nft, count_by_nft, start_dt, end_dt = calc_fee_usd_24h_from_cash_flows(pos_list_all, test_now)
+    safe_fee_apr = calc_fee_apr_a(fee_usd, net_total)
 
 
 
@@ -490,6 +491,7 @@ def main():
         "────────────────\n"
         f"SAFE\n{safe}\n\n"
         f"・24h確定手数料 {fmt_money(fee_usd)}\n"
+        f"・Fee APR(SAFE) {fmt_pct(safe_fee_apr)}\n"
         f"・Net合算 {fmt_money(net_total)}\n"
         f"・未回収手数料 {fmt_money(uncollected_total)}\n"
         f"・Transactions {fee_count}\n"
