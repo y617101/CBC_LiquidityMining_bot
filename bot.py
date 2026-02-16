@@ -397,6 +397,16 @@ def main():
     positions_open = fetch_positions(safe, active=True)
     positions_exited = fetch_positions(safe, active=False)
     xp_ops = fetch_xp_operations(safe)
+    # --- DBG: xp-operationsの中身を1件だけ見る ---
+try:
+    xp_list = _as_list(xp_ops)
+    print("DBG xp_list len:", len(xp_list), flush=True)
+    if xp_list:
+        print("DBG xp sample keys:", list(xp_list[0].keys()), flush=True)
+        print("DBG xp sample:", str(xp_list[0])[:1500], flush=True)
+except Exception as e:
+    print("DBG xp parse error:", e, flush=True)
+
 
     pos_list_open = positions_open if isinstance(positions_open, list) else positions_open.get("positions", positions_open.get("data", []))
     pos_list_exited = positions_exited if isinstance(positions_exited, list) else positions_exited.get("positions", positions_exited.get("data", []))
